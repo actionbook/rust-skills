@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Rust Skills",
+    "description": "基于元认知框架的 AI Rust 开发助手。安装 DeepSeek Harness bundle 后，六个命令会出现在 `/` 菜单中，并可通过内置 provider 使用全部 38 个仓库 skills。"
+  }
+}

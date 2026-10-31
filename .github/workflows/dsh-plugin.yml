@@ -1,0 +1,43 @@
+name: DSH plugin
+
+on:
+  push:
+    paths:
+      - '.dsh/**'
+      - 'skills/**'
+      - 'locale/**'
+      - '.claude-plugin/plugin.json'
+      - 'docs/awesome-dsh-plugin/**'
+      - 'README.md'
+      - 'tests/dsh/**'
+      - 'tests/validation/validate-dsh-plugin.mjs'
+      - 'package.json'
+      - '.github/workflows/dsh-plugin.yml'
+  pull_request:
+    paths:
+      - '.dsh/**'
+      - 'skills/**'
+      - 'locale/**'
+      - '.claude-plugin/plugin.json'
+      - 'docs/awesome-dsh-plugin/**'
+      - 'README.md'
+      - 'tests/dsh/**'
+      - 'tests/validation/validate-dsh-plugin.mjs'
+      - 'package.json'
+      - '.github/workflows/dsh-plugin.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests and bundle validation
+        run: npm test
+      - name: Package contents
+        run: npm_config_cache="$(mktemp -d)" npm pack --dry-run --json

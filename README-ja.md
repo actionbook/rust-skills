@@ -10,7 +10,7 @@
 
 ## Rust Skills とは？
 
-**Rust Skills** は Claude Code プラグインで、AI による Rust 開発支援の方法を変革します。表面的な回答ではなく、認知層を遡って**ドメイン的に正しいアーキテクチャソリューション**を提供します。
+**Rust Skills** は、Claude Code プラグインと [DeepSeek Harness bundle](#deepseek-harness-インストール) の2つの形で提供される Rust 開発アシスタントです。表面的な回答ではなく、認知層を遡って**ドメイン的に正しいアーキテクチャソリューション**を提供することで、AI による Rust 開発支援の方法を変革します。
 
 ### 問題点
 
@@ -46,10 +46,11 @@ AI (Rust Skills 使用):
 
 ## インストール
 
-Rust Skills は2つのインストールモードをサポートしています：
+Rust Skills は3つのインストールモードをサポートしています：
 
 - **Plugin モード**（Claude Code）：hooks、agents、自動メタ認知トリガーを含む完全機能
 - **Skills-only モード**：skills をサポートする任意のコーディングエージェントで動作（Claude Code、Vercel AI など）
+- **DeepSeek Harness bundle**：DeepSeek Harness 向けの skills とスラッシュコマンド（[DeepSeek Harness インストール](#deepseek-harness-インストール) を参照）
 
 ---
 
@@ -136,11 +137,27 @@ claude --plugin-dir /path/to/rust-skills
 
 ---
 
+### DeepSeek Harness インストール
+
+Rust Skills は [`.dsh/`](./.dsh/) に DeepSeek Harness bundle も同梱しています。6 つのコマンドをユーザー呼び出し可能な skills としてインストールし、38 個のリポジトリ skills を提供します。
+
+```bash
+# GitHub からインストール
+dsh plugin --profile web add github:actionbook/rust-skills
+
+# ローカルチェックアウトからインストール
+dsh plugin --profile web add link:/path/to/rust-skills
+```
+
+6 つのコマンドは[コマンド](#コマンド)の節にあります。
+
+---
+
 ### 機能比較
 
 | 機能 | Plugin（Marketplace） | Plugin（ローカル） | Skills-only（NPX/CoWork/手動） |
 |------|---------------------|-------------------|-------------------------------|
-| 全 31 Skills | ✅ | ✅ | ✅ |
+| 全 38 Skills | ✅ | ✅ | ✅ |
 | 自動メタ認知トリガー | ✅ | ✅ | ❌（手動呼び出し） |
 | Hook ルーティング | ✅ | ✅ | ❌ |
 | バックグラウンドエージェント | ✅ | ✅ | ✅（インラインフォールバック） |
@@ -177,6 +194,7 @@ EOF
 
 - **OpenCode**: [.opencode/INSTALL.md](.opencode/INSTALL.md) を参照
 - **Codex**: [.codex/INSTALL.md](.codex/INSTALL.md) を参照
+- **DeepSeek Harness**: [DeepSeek Harness インストール](#deepseek-harness-インストール) を参照
 
 ## 依存 Skills
 
@@ -280,13 +298,11 @@ cd my-rust-project
 
 # すべての依存関係を同期
 /sync-crate-skills
-
-# Skills は ~/.claude/skills/{crate}/ に作成されます
 ```
 
 ### 特徴
 - **オンデマンド生成**: Cargo.toml 依存関係から作成
-- **ローカルストレージ**: `~/.claude/skills/`
+- **ローカルストレージ**: Claude Code は `~/.claude/skills/`、DeepSeek Harness は `$DSH_HOME/skills/`
 - **バージョン追跡**: 各 skill が crate バージョンを記録
 - **ワークスペースサポート**: すべてのワークスペースメンバーを解析
 

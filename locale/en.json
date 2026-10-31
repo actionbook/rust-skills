@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Rust Skills",
+    "description": "AI-powered Rust development assistant with a meta-cognition framework. The DeepSeek Harness bundle adds six commands to the `/` menu and exposes all 38 repository skills through a bundled provider."
+  }
+}

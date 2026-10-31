@@ -10,7 +10,7 @@
 
 ## 什么是 Rust Skills？
 
-**Rust Skills** 是一个 Claude Code 插件，它改变了 AI 辅助 Rust 开发的方式。它不再给出表面答案，而是通过认知层追溯，提供**领域正确的架构方案**。
+**Rust Skills** 是一个 Rust 开发助手，提供 Claude Code 插件与 [DeepSeek Harness bundle](#deepseek-harness-安装) 两种形式。它改变了 AI 辅助 Rust 开发的方式：不再给出表面答案，而是通过认知层追溯，提供**领域正确的架构方案**。
 
 ### 问题
 
@@ -46,10 +46,11 @@ AI (使用 Rust Skills):
 
 ## 安装
 
-Rust Skills 支持两种安装模式：
+Rust Skills 支持三种安装模式：
 
 - **Plugin 模式**（Claude Code）：完整功能，包含 hooks、agents 和自动元认知触发
 - **Skills-only 模式**：适用于任何支持 skills 的编码助手（Claude Code、Vercel AI 等）
+- **DeepSeek Harness bundle**：面向 DeepSeek Harness 的 skills 与斜杠命令（见 [DeepSeek Harness 安装](#deepseek-harness-安装)）
 
 ---
 
@@ -136,11 +137,27 @@ claude --plugin-dir /path/to/rust-skills
 
 ---
 
+### DeepSeek Harness 安装
+
+Rust Skills 同时提供 DeepSeek Harness bundle，位于 [`.dsh/`](./.dsh/)。它把六个命令安装为用户可调用 skills，并提供全部 38 个仓库 skills。
+
+```bash
+# 从 GitHub 安装
+dsh plugin --profile web add github:actionbook/rust-skills
+
+# 从本地检出安装
+dsh plugin --profile web add link:/path/to/rust-skills
+```
+
+六个命令见[命令](#命令)一节。
+
+---
+
 ### 功能对比
 
 | 功能 | Plugin（Marketplace） | Plugin（本地） | Skills-only（NPX/CoWork/手动） |
 |------|---------------------|---------------|-------------------------------|
-| 全部 31 个 Skills | ✅ | ✅ | ✅ |
+| 全部 38 个 Skills | ✅ | ✅ | ✅ |
 | 自动触发元认知 | ✅ | ✅ | ❌（手动调用） |
 | Hook 路由 | ✅ | ✅ | ❌ |
 | 后台 Agents | ✅ | ✅ | ✅（内联回退） |
@@ -177,6 +194,7 @@ EOF
 
 - **OpenCode**: 参见 [.opencode/INSTALL.md](.opencode/INSTALL.md)
 - **Codex**: 参见 [.codex/INSTALL.md](.codex/INSTALL.md)
+- **DeepSeek Harness**：见 [DeepSeek Harness 安装](#deepseek-harness-安装)
 
 ## 依赖 Skills
 
@@ -280,13 +298,11 @@ cd my-rust-project
 
 # 同步所有依赖
 /sync-crate-skills
-
-# Skills 创建在 ~/.claude/skills/{crate}/
 ```
 
 ### 特性
 - **按需生成**: 从 Cargo.toml 依赖创建
-- **本地存储**: `~/.claude/skills/`
+- **本地存储**: Claude Code 使用 `~/.claude/skills/`，DeepSeek Harness 使用 `$DSH_HOME/skills/`
 - **版本追踪**: 每个 skill 记录 crate 版本
 - **Workspace 支持**: 解析所有 workspace 成员
 

@@ -10,7 +10,7 @@
 
 ## What is Rust Skills?
 
-**Rust Skills** is a Claude Code plugin that transforms how AI assists with Rust development. Instead of giving surface-level answers, it traces through cognitive layers to provide **domain-correct architectural solutions**.
+**Rust Skills** is a Rust development assistant available as a Claude Code plugin and a [DeepSeek Harness bundle](#deepseek-harness-install). It transforms how AI assists with Rust development: instead of giving surface-level answers, it traces through cognitive layers to provide **domain-correct architectural solutions**.
 
 ### The Problem
 
@@ -46,10 +46,11 @@ AI (with Rust Skills):
 
 ## Installation
 
-Rust Skills supports two installation modes:
+Rust Skills supports three installation modes:
 
 - **Plugin Mode** (Claude Code): Full features including hooks, agents, and auto meta-cognition
 - **Skills-only Mode**: Works with any coding agent that supports skills (Claude Code, Vercel AI, etc.)
+- **DeepSeek Harness bundle**: Skills and slash commands for DeepSeek Harness (see [DeepSeek Harness Install](#deepseek-harness-install))
 
 ---
 
@@ -136,11 +137,27 @@ claude --plugin-dir /path/to/rust-skills
 
 ---
 
+### DeepSeek Harness Install
+
+Rust Skills also ships a DeepSeek Harness bundle in [`.dsh/`](./.dsh/). It installs the six commands as user-invocable skills and provides all 38 repository skills.
+
+```bash
+# From GitHub
+dsh plugin --profile web add github:actionbook/rust-skills
+
+# From a local checkout
+dsh plugin --profile web add link:/path/to/rust-skills
+```
+
+The six commands are listed in the [Commands](#commands) section.
+
+---
+
 ### Feature Comparison
 
 | Feature | Plugin (Marketplace) | Plugin (Local) | Skills-only (NPX/CoWork/Manual) |
 |---------|---------------------|----------------|--------------------------------|
-| All 31 Skills | ✅ | ✅ | ✅ |
+| All 38 Skills | ✅ | ✅ | ✅ |
 | Auto meta-cognition trigger | ✅ | ✅ | ❌ (manual invoke) |
 | Hook-based routing | ✅ | ✅ | ❌ |
 | Background agents | ✅ | ✅ | ✅ (inline fallback) |
@@ -177,6 +194,7 @@ See [.claude/settings.example.json](.claude/settings.example.json) for reference
 
 - **OpenCode**: See [.opencode/INSTALL.md](.opencode/INSTALL.md)
 - **Codex**: See [.codex/INSTALL.md](.codex/INSTALL.md)
+- **DeepSeek Harness**: See [DeepSeek Harness Install](#deepseek-harness-install)
 
 ## Dependent Skills
 
@@ -186,6 +204,8 @@ Rust Skills relies on these external tools for full functionality:
 |------|-------------|--------|
 | **actionbook** | MCP server for website action manuals. Used by agents to fetch structured web content (Rust releases, crate info, documentation). | [actionbook/actionbook](https://github.com/actionbook/actionbook) |
 | **agent-browser** | Browser automation tool for fetching real-time web data. Fallback when actionbook is unavailable. | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) |
+
+DeepSeek Harness commands use the host's web tools and do not need either tool.
 
 ## Meta-Cognition Framework
 
@@ -280,13 +300,11 @@ cd my-rust-project
 
 # Sync all dependencies
 /sync-crate-skills
-
-# Skills are created at ~/.claude/skills/{crate}/
 ```
 
 ### Features
 - **On-demand generation**: Created from Cargo.toml dependencies
-- **Local storage**: `~/.claude/skills/`
+- **Local storage**: `~/.claude/skills/` in Claude Code, `$DSH_HOME/skills/` in DeepSeek Harness
 - **Version tracking**: Each skill records crate version
 - **Workspace support**: Parses all workspace members
 

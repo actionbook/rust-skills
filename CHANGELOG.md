@@ -5,6 +5,27 @@ All notable changes to rust-skills will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **DeepSeek Harness bundle** in `.dsh/`:
+  - Root `package.json` declares `dsh.bundle` and mounts `.dsh/cordis.patch.yml`.
+  - `.dsh/index.js` registers a bundled skill provider for the 38 repository skills and the six commands.
+  - `.dsh/scripts/crate-skills.mjs` discovers Cargo dependencies and safely manages generated crate skills.
+- **Display metadata**: `locale/en.json` and `locale/zh.json` provide the bundle title and description.
+- **DSH commands**: `/rust-features`, `/crate-info`, `/docs`, `/sync-crate-skills`, `/update-crate-skill`, and `/clean-crate-skills` as user-invocable skills.
+- **Tests**: provider/helper unit tests, a DSH bundle validation script, and a GitHub Actions workflow.
+
+### Changed
+- README skill count corrected from 31 to 38, and metadata now records the six LSP skills and a 38-skill total.
+
+### Planned
+- More code templates
+- Index generation tools
+- Additional dynamic skill support
+
+---
+
 ## [2.0.9] - 2025-01-22
 
 ### Changed
@@ -264,10 +285,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Agents use haiku model for efficiency
 - Routing based on keywords and error codes
 - Chinese language triggers supported
-
-## [Unreleased]
-
-### Planned
-- More code templates
-- Index generation tools
-- Additional dynamic skill support

@@ -1,0 +1,11 @@
+# rust-skills DeepSeek Harness bundle.
+#
+# One host row mounted from `.dsh/index.js`. The row registers a bundled skill
+# provider on `ctx.skills` that serves:
+#   - the six user-invocable commands in `.dsh/skills/`
+#   - the 38 repository skills in `skills/`
+#
+# The inserted `name` must match the installed package name exactly.
+- insert:
+    - id: rust-skills
+      name: rust-skills
