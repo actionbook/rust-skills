@@ -11,7 +11,8 @@ tests/
 ├── README.md
 ├── dsh/                    # DeepSeek Harness bundle tests
 │   ├── provider.test.mjs   # skill provider and frontmatter parsing
-│   └── crate-skills.test.mjs # dependency discovery and safe skill removal
+│   ├── crate-skills.test.mjs # dependency discovery and safe skill removal
+│   └── commands.json       # expected command names
 ├── scenarios/              # Test scenarios by category
 │   ├── ownership.md        # m01-m04 ownership/resource tests
 │   ├── layer2-skills.md    # m05, m09-m15 design skills
@@ -73,7 +74,7 @@ claude -p "tokio 最新版本"                # rust-learner
 
 ```bash
 # Unit tests for the provider and the crate-skills helper
-node --test tests/dsh
+node --test
 
 # Bundle/manifest/skill/command validation
 node tests/validation/validate-dsh-plugin.mjs

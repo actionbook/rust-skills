@@ -282,11 +282,11 @@ Layer 1: 言語機構 (HOW - どのように)
 | コマンド | 説明 |
 |----------|------|
 | `/rust-features [version]` | Rust バージョン機能を取得 |
-| `/crate-info <crate>` | crate 情報を取得 |
+| `/crate-info <crate> [version]` | crate 情報を取得 |
 | `/docs <crate> [item]` | API ドキュメントを取得 |
-| `/sync-crate-skills` | Cargo.toml から skills を同期 |
-| `/update-crate-skill <crate>` | 指定 crate skill を更新 |
-| `/clean-crate-skills` | ローカル crate skills をクリーン |
+| `/sync-crate-skills [--force] [--from-source <path>] [crate ...]` | Cargo.toml から skills を同期 |
+| `/update-crate-skill <crate> [version]` | 指定 crate skill を更新 |
+| `/clean-crate-skills [crate ...] [--all]` | ローカル crate skills をクリーン |
 
 ## 動的 Skills
 

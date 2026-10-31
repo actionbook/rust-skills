@@ -282,11 +282,11 @@ Layer 1: 语言机制 (HOW - 怎么做)
 | 命令 | 说明 |
 |------|------|
 | `/rust-features [version]` | 获取 Rust 版本特性 |
-| `/crate-info <crate>` | 获取 crate 信息 |
+| `/crate-info <crate> [version]` | 获取 crate 信息 |
 | `/docs <crate> [item]` | 获取 API 文档 |
-| `/sync-crate-skills` | 从 Cargo.toml 同步 skills |
-| `/update-crate-skill <crate>` | 更新指定 crate skill |
-| `/clean-crate-skills` | 清理本地 crate skills |
+| `/sync-crate-skills [--force] [--from-source <path>] [crate ...]` | 从 Cargo.toml 同步 skills |
+| `/update-crate-skill <crate> [version]` | 更新指定 crate skill |
+| `/clean-crate-skills [crate ...] [--all]` | 清理本地 crate skills |
 
 ## 动态 Skills
 

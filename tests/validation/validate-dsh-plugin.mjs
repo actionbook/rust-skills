@@ -14,14 +14,9 @@ import { fileURLToPath } from 'node:url'
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
-const COMMANDS = [
-  'clean-crate-skills',
-  'crate-info',
-  'docs',
-  'rust-features',
-  'sync-crate-skills',
-  'update-crate-skill',
-]
+const COMMANDS = JSON.parse(
+  readFileSync(join(REPO_ROOT, 'tests/dsh/commands.json'), 'utf8'),
+).commands
 
 let failures = 0
 

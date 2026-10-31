@@ -25,8 +25,8 @@
     "dsh": ">=0.2.0 <0.3.0"
   },
   "scripts": {
-    "test": "node --test tests/dsh && node tests/validation/validate-dsh-plugin.mjs",
-    "prepublishOnly": "node --test tests/dsh"
+    "test": "node --test && node tests/validation/validate-dsh-plugin.mjs",
+    "prepublishOnly": "node --test"
   },
   "keywords": [
     "dsh",

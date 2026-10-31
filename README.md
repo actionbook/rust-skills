@@ -284,11 +284,11 @@ Layer 1: Language Mechanics (HOW)
 | Command | Description |
 |---------|-------------|
 | `/rust-features [version]` | Get Rust version features |
-| `/crate-info <crate>` | Get crate information |
+| `/crate-info <crate> [version]` | Get crate information |
 | `/docs <crate> [item]` | Get API documentation |
-| `/sync-crate-skills` | Sync skills from Cargo.toml dependencies |
-| `/update-crate-skill <crate>` | Update specific crate skill |
-| `/clean-crate-skills` | Clean local crate skills |
+| `/sync-crate-skills [--force] [--from-source <path>] [crate ...]` | Sync skills from Cargo.toml dependencies |
+| `/update-crate-skill <crate> [version]` | Update specific crate skill |
+| `/clean-crate-skills [crate ...] [--all]` | Clean local crate skills |
 
 ## Dynamic Skills
 

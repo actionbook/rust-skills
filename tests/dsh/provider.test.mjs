@@ -8,14 +8,10 @@ import { apply, createProvider, parseFrontmatter } from '../../.dsh/index.js'
 
 const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const PLUGIN = JSON.parse(readFileSync(join(REPO_ROOT, '.claude-plugin/plugin.json'), 'utf8'))
-const COMMANDS = [
-  'clean-crate-skills',
-  'crate-info',
-  'docs',
-  'rust-features',
-  'sync-crate-skills',
-  'update-crate-skill',
-]
+const COMMAND_MANIFEST = JSON.parse(
+  readFileSync(join(REPO_ROOT, 'tests/dsh/commands.json'), 'utf8'),
+)
+const COMMANDS = COMMAND_MANIFEST.commands
 
 test('parses quoted scalars, CRLF, and BOM frontmatter', () => {
   const parsed = parseFrontmatter(
