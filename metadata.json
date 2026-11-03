@@ -110,8 +110,7 @@
   ],
 
   "compatibility": {
-    "claude_code_min_version": "1.0.0",
-    "rust_version_coverage": "1.0.0 - 1.85.0"
+    "claude_code_min_version": "1.0.0"
   },
 
   "last_updated": "2025-01-22",

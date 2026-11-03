@@ -8,6 +8,9 @@ clippy: undocumented_unsafe_blocks
 
 # Add SAFETY Comment Before Any Unsafe Block
 
+Inside an `unsafe fn`, use explicit `unsafe` blocks for unsafe operations.
+Document each block's specific invariant rather than relying on the function declaration.
+
 ## Summary
 
 Every `unsafe` block or `unsafe impl` must have a `// SAFETY:` comment explaining why the operation is safe.

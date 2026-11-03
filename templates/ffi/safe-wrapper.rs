@@ -11,12 +11,12 @@ use std::ptr::NonNull;
 // =====================================================
 
 mod ffi {
-    use super::*;
+    use super::{c_char, c_int};
 
     // Opaque handle type
     pub enum Handle {}
 
-    extern "C" {
+    unsafe extern "C" {
         pub fn lib_create() -> *mut Handle;
         pub fn lib_destroy(handle: *mut Handle);
         pub fn lib_process(handle: *mut Handle, input: *const c_char) -> c_int;
@@ -68,6 +68,9 @@ unsafe impl Send for Library {}
 
 impl Library {
     /// Create a new library instance.
+    ///
+    /// # Errors
+    /// Returns an error if the library cannot create a handle.
     pub fn new() -> Result<Self> {
         // SAFETY: lib_create returns a valid handle or null
         let ptr = unsafe { ffi::lib_create() };
@@ -78,6 +81,9 @@ impl Library {
     }
 
     /// Process input and return result.
+    ///
+    /// # Errors
+    /// Returns an error for invalid input, processing failure, or invalid output.
     pub fn process(&mut self, input: &str) -> Result<String> {
         // Convert Rust string to C string
         let c_input = CString::new(input)
@@ -89,7 +95,7 @@ impl Library {
         };
 
         if result != 0 {
-            return Err(self.get_last_error());
+            return Err(Self::get_last_error());
         }
 
         self.get_result()
@@ -109,12 +115,12 @@ impl Library {
 
         c_str
             .to_str()
-            .map(|s| s.to_string())
+            .map(ToString::to_string)
             .map_err(|_| Error::InvalidUtf8)
     }
 
     /// Get the last error message.
-    fn get_last_error(&self) -> Error {
+    fn get_last_error() -> Error {
         // SAFETY: lib_get_error returns valid C string or null
         let ptr = unsafe { ffi::lib_get_error() };
 
@@ -148,22 +154,29 @@ impl Drop for Library {
 
 pub struct LibraryBuilder {
     // Configuration options...
-    _config: String,
+    config: String,
 }
 
 impl LibraryBuilder {
+    #[must_use]
     pub fn new() -> Self {
         Self {
-            _config: String::new(),
+            config: String::new(),
         }
     }
 
+    #[must_use]
     pub fn with_config(mut self, config: &str) -> Self {
-        self._config = config.to_string();
+        self.config = config.to_string();
         self
     }
 
+    /// Build a library handle.
+    ///
+    /// # Errors
+    /// Returns an error if the library cannot create a handle.
     pub fn build(self) -> Result<Library> {
+        let _ = self.config;
         Library::new()
     }
 }
@@ -177,8 +190,6 @@ impl Default for LibraryBuilder {
 // =====================================================
 // Callback Pattern
 // =====================================================
-
-type Callback = extern "C" fn(*mut c_void, c_int);
 
 /// Wrapper for passing Rust closures to C callbacks
 pub struct CallbackContext<F> {
@@ -195,14 +206,22 @@ where
 
     /// Get raw pointer for passing to C
     pub fn as_ptr(self: &mut Box<Self>) -> *mut c_void {
-        &mut **self as *mut Self as *mut c_void
+        (&raw mut **self).cast::<c_void>()
     }
 
-    /// The actual callback function passed to C
-    pub extern "C" fn callback_trampoline(ctx: *mut c_void, value: c_int) {
+    /// The actual callback function passed to C.
+    ///
+    /// # Safety
+    /// `ctx` must point to a live, exclusively accessible `CallbackContext<F>`.
+    /// The caller must prevent concurrent or reentrant access.
+    pub unsafe extern "C" fn callback_trampoline(ctx: *mut c_void, value: c_int) {
         // SAFETY: ctx must be a valid pointer to CallbackContext
-        let ctx = unsafe { &mut *(ctx as *mut Self) };
-        (ctx.closure)(value as i32);
+        let ctx = unsafe { &mut *ctx.cast::<Self>() };
+        if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| (ctx.closure)(value)))
+            .is_err()
+        {
+            std::process::abort();
+        }
     }
 }
 
@@ -214,7 +233,7 @@ fn main() -> Result<()> {
     let mut lib = Library::new()?;
 
     let result = lib.process("hello")?;
-    println!("Result: {}", result);
+    println!("Result: {result}");
 
     Ok(())
 }
@@ -225,7 +244,7 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{c_char, c_int};
 
     // Note: These tests require mock FFI implementations
     // In real code, use mockall or similar for FFI mocking

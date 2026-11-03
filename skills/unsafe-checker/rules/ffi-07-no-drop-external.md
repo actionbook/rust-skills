@@ -34,7 +34,7 @@ impl Drop for EventHandler {
     }
 }
 
-extern "C" {
+unsafe extern "C" {
     // C takes ownership and frees EventHandler when done
     fn register_handler(h: *mut EventHandler);
 }
@@ -60,7 +60,7 @@ struct EventHandler {
 }
 // No Drop impl - C library manages lifetime
 
-extern "C" {
+unsafe extern "C" {
     fn register_handler(h: *mut EventHandler);
     fn unregister_handler(h: *mut EventHandler);
 }

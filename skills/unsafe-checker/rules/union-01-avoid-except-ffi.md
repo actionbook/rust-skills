@@ -65,7 +65,7 @@ union CUnion {
 }
 
 // When interfacing with C code that uses this union
-extern "C" {
+unsafe extern "C" {
     fn c_function_returns_union() -> CUnion;
     fn c_function_takes_union(u: CUnion);
 }

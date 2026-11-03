@@ -15,7 +15,7 @@ Use `MaybeUninit<T>` instead of `mem::uninitialized()` or `mem::zeroed()` when w
 ## Rationale
 
 - `mem::uninitialized()` is deprecated and unsound
-- `mem::zeroed()` is UB for types where zero is invalid (references, NonZero, bool)
+- `mem::zeroed()` is UB for types where zero is invalid (references or NonZero)
 - `MaybeUninit<T>` clearly marks memory as potentially uninitialized
 - Compiler can optimize based on initialization state
 
@@ -32,9 +32,7 @@ fn bad_zeroed() -> &'static str {
     unsafe { std::mem::zeroed() }  // UB: null reference
 }
 
-fn bad_zeroed_bool() -> bool {
-    unsafe { std::mem::zeroed() }  // UB: 0 might not be valid bool
-}
+// Zero is a valid bool representation (false); not every byte pattern is valid.
 
 // DON'T: Transmute to "initialize"
 fn bad_transmute() -> [String; 10] {
@@ -51,64 +49,28 @@ fn bad_vec() -> Vec<String> {
 
 ## Good Example
 
+Prefer safe initialization when possible. `array::from_fn` also drops values already
+constructed if the initializer panics.
+
 ```rust
 use std::mem::MaybeUninit;
 
-// DO: Use MaybeUninit for delayed initialization
-fn good_array() -> [String; 10] {
-    let mut arr: [MaybeUninit<String>; 10] =
-        unsafe { MaybeUninit::uninit().assume_init() };
-
-    for (i, elem) in arr.iter_mut().enumerate() {
-        elem.write(format!("item {}", i));
-    }
-
-    // SAFETY: All elements initialized above
-    unsafe { std::mem::transmute::<_, [String; 10]>(arr) }
+fn initialized_array() -> [String; 10] {
+    std::array::from_fn(|i| format!("item {i}"))
 }
 
-// DO: Use MaybeUninit with arrays (cleaner with array_assume_init)
-fn good_array_nightly() -> [String; 10] {
-    let mut arr: [MaybeUninit<String>; 10] =
-        [const { MaybeUninit::uninit() }; 10];
-
-    for (i, elem) in arr.iter_mut().enumerate() {
-        elem.write(format!("item {}", i));
-    }
-
-    // On nightly: arr.map(|e| unsafe { e.assume_init() })
-    unsafe { MaybeUninit::array_assume_init(arr) }
-}
-
-// DO: Use zeroed only for types where it's valid
-fn good_zeroed() -> [u8; 1024] {
-    // SAFETY: All-zero bytes is valid for u8
-    unsafe { std::mem::zeroed() }
-}
-
-// DO: Initialize buffer properly
-fn good_vec() -> Vec<u8> {
-    let mut v = Vec::with_capacity(1024);
-
-    // Option 1: Resize with default value
-    v.resize(1024, 0);
-
-    // Option 2: Use spare_capacity_mut
-    let spare = v.spare_capacity_mut();
-    for elem in spare.iter_mut().take(1024) {
-        elem.write(0);
-    }
-    unsafe { v.set_len(1024); }
-
-    v
-}
-
-// DO: Use MaybeUninit::uninit_array (nightly) or const array
-fn good_uninit_array<const N: usize>() -> [MaybeUninit<u8>; N] {
-    // Stable: create array of uninit
+fn uninitialized_array<const N: usize>() -> [MaybeUninit<u8>; N] {
     [const { MaybeUninit::uninit() }; N]
 }
+
+fn initialized_buffer() -> Vec<u8> {
+    vec![0; 1024]
+}
 ```
+
+When manual initialization is necessary, track initialized elements on every panic and error
+path. Call `assume_init` only after proving the value is fully initialized and valid for `T`.
+`MaybeUninit::zeroed()` does not make an invalid all-zero bit pattern valid.
 
 ## MaybeUninit API
 

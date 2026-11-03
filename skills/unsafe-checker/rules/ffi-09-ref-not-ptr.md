@@ -21,7 +21,7 @@ When wrapping C functions that don't need null pointers, use Rust references in 
 ## Bad Example
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn c_process(data: *const u8, len: usize);
 }
 
@@ -41,7 +41,7 @@ pub unsafe fn process_unsafe(data: *const u8, len: usize) {
 ## Good Example
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn c_process(data: *const u8, len: usize);
     fn c_modify(data: *mut Data);
     fn c_optional(data: *const Data);  // Can be null
@@ -107,12 +107,18 @@ fn slice_to_ptr(s: &[u8]) -> (*const u8, usize) {
 }
 
 // Pointer to reference (unsafe)
+/// # Safety
+/// `p` must be aligned, initialized and readable for `'a`, with no conflicting mutation.
 unsafe fn ptr_to_ref<'a>(p: *const Data) -> &'a Data {
-    &*p
+    // SAFETY: The caller guarantees validity and shared access for `'a`.
+    unsafe { &*p }
 }
 
+/// # Safety
+/// `p` must be aligned, initialized and exclusively accessible for `'a`.
 unsafe fn ptr_to_mut<'a>(p: *mut Data) -> &'a mut Data {
-    &mut *p
+    // SAFETY: The caller guarantees validity and exclusive access for `'a`.
+    unsafe { &mut *p }
 }
 ```
 

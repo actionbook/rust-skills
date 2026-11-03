@@ -3,7 +3,7 @@ id: ffi-11
 original_id: P.UNS.FFI.11
 level: P
 impact: HIGH
-clippy: unaligned_references
+rustc: E0793
 ---
 
 # Be Careful with UB When Referencing #[repr(packed)] Struct Fields

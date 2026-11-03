@@ -13,7 +13,7 @@ The text after `/rust-features` in the user's message is the version argument. I
 
 ## Arguments
 
-- `version` (optional): Rust version number, for example `1.83` or `1.85.0`. Strip a leading `v`.
+- `version` (optional): Rust version number, for example `1.83` or `1.99.0`. Strip a leading `v`.
 - Reject anything that is not a version, and ask for clarification instead of guessing.
 
 ## Workflow

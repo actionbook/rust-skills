@@ -25,7 +25,7 @@ When passing strings across FFI, ensure both sides agree on encoding, null-termi
 use std::ffi::CString;
 use std::os::raw::c_char;
 
-extern "C" {
+unsafe extern "C" {
     fn c_process_string(s: *const c_char);
 }
 
@@ -46,7 +46,7 @@ fn rust_to_c(s: &str) -> Result<(), std::ffi::NulError> {
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-extern "C" {
+unsafe extern "C" {
     fn c_get_string() -> *const c_char;
 }
 
@@ -64,7 +64,7 @@ fn c_to_rust() -> Option<String> {
 ### C to Rust (Ownership Transfer)
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn c_create_string() -> *mut c_char;
     fn c_free_string(s: *mut c_char);
 }
@@ -99,7 +99,7 @@ impl Drop for CAllocatedString {
 ### Rust to C (Ownership Transfer)
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn c_take_ownership(s: *mut c_char);  // C will free
 }
 

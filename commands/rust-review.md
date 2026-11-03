@@ -48,7 +48,7 @@ ERROR (1):
     → Fix: Use ? operator or handle error explicitly
 
 WARNING (2):
-  src/lib.rs:15 [clippy::needless_clone]
+  src/lib.rs:15 [clippy::redundant_clone]
     → Clone is not needed here
     → Fix: Remove .clone()
 
@@ -62,6 +62,9 @@ WARNING (2):
 ## Clippy Configuration
 
 项目可通过 `clippy.toml` 或 `Cargo.toml` 配置 clippy：
+
+`unwrap_used` is a restriction lint and requires explicit configuration; it is not enabled
+by `clippy::all` or `clippy::pedantic`. Respect the project's configured lint levels.
 
 ```toml
 # Cargo.toml

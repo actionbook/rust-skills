@@ -136,13 +136,28 @@ fn process(x: Box<dyn Display>) { }  // owned
 
 ## Object Safety
 
-A trait is object-safe if it:
-- Doesn't have `Self: Sized` bound
-- Doesn't return `Self`
-- Doesn't have generic methods
-- Uses `where Self: Sized` for non-object-safe methods
+A dyn-compatible trait cannot require `Self: Sized`. Dispatchable methods must meet the
+receiver, `Self`, and generic-parameter restrictions. Methods that cannot be dispatched on a
+trait object can be excluded with `where Self: Sized`. A trait object can be upcast to a
+supertrait object, for example `&dyn Sub` to `&dyn Super`, when the supertrait relationship
+exists. Check the [Rust Reference](https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility)
+for the complete rules.
+
+Return-position `impl Trait` can use a `use<...>` bound to specify captured generic
+parameters and lifetimes, including in trait methods. Use it to avoid capturing a borrow
+that the returned value does not need. The bound must still meet Rust's capture rules,
+including the requirement to list in-scope type and const parameters; it cannot extend a
+reference's actual lifetime.
+
+Return-position `impl Trait` implicitly captures all in-scope generic
+parameters, including lifetimes, unless a precise `use<...>` bound is present. Capturing
+a lifetime can constrain callers even when the hidden type does not borrow from it.
 
 ---
+
+For APIs accepting ranges, consider `RangeBounds` when callers need both legacy and new
+`core::range` types. Range syntax still produces legacy ranges; the newer types implement
+`IntoIterator` and can be `Copy`. Do not assume the types are interchangeable.
 
 ## Anti-Patterns
 
@@ -162,4 +177,5 @@ A trait is object-safe if it:
 | Type-driven design | m05-type-driven |
 | Domain abstraction | m09-domain |
 | Performance concerns | m10-performance |
+| Generic SIMD and monomorphization costs | m10-performance |
 | Send/Sync bounds | m07-concurrency |

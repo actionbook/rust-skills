@@ -110,6 +110,10 @@ To implementation (Layer 1):
 | Usage | `&self`, `&mut self` |
 | Cleanup | `Drop::drop()` |
 
+`OnceLock::wait` blocks until another thread initializes the value. Use it only when a
+separate initializer is guaranteed to run; calling it from the only possible initializer
+can block indefinitely. Use `get_or_init` when the caller should initialize the value.
+
 ## Pattern Templates
 
 ### RAII Guard
@@ -161,7 +165,7 @@ fn get_config() -> &'static Config {
 | Anti-Pattern | Why Bad | Better |
 |--------------|---------|--------|
 | Manual cleanup | Easy to forget | RAII/Drop |
-| `lazy_static!` | External dep | `std::sync::OnceLock` |
+| Extra dependency for simple lazy initialization | Extra dependency may be unnecessary | `LazyLock` or `OnceLock` when suitable |
 | Global mutable state | Thread unsafety | `OnceLock` or proper sync |
 | Forget to close | Resource leak | Drop impl |
 

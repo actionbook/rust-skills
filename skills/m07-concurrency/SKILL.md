@@ -6,6 +6,16 @@ user-invocable: false
 
 # Concurrency
 
+`Future` and `IntoFuture` are in the prelude. If a migration produces an
+ambiguous trait method, use an explicit import or fully qualified call. Async closures such
+as `async |item| { ... }` and `AsyncFn` bounds can express asynchronous callbacks that
+borrow from their captures; choose their bounds based on how the callback is invoked.
+
+`std::env::set_var` and `remove_var` are unsafe because process-wide
+environment mutation can race with other threads on some platforms. Prefer `Command::env`
+or `env_remove` for child-process configuration. Call the process-wide functions only when
+their documented platform-specific safety requirements are established.
+
 > **Layer 1: Language Mechanics**
 
 ## Core Question
@@ -90,6 +100,7 @@ Before adding concurrency:
 | Send/Sync in CLI | **domain-cli** | Is multi-thread really needed? |
 | Mutex vs channels | m09-domain | Shared state or message passing? |
 | Async vs threads | m10-performance | What's the workload profile? |
+| SIMD vs thread parallelism | m10-performance | Can independent operations use SIMD lanes, threads, or both? |
 
 ---
 

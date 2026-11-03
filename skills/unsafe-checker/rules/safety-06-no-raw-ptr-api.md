@@ -83,12 +83,15 @@ impl Buffer {
     ///
     /// # Safety
     ///
-    /// - `ptr` must point to `len` valid bytes
-    /// - The memory must be allocated with the global allocator
-    /// - Caller transfers ownership of the memory to Buffer
+    /// - `ptr` must be non-null and aligned. For nonzero `cap`, it must come
+    ///   from an allocation compatible with the global allocator and exact `cap` layout
+    /// - `len <= cap`, the first `len` bytes are initialized, and the allocation
+    ///   satisfies all `Vec::from_raw_parts` requirements, including size limits
+    /// - The caller transfers exclusive ownership and must not free or access it
     pub unsafe fn from_raw_parts(ptr: *mut u8, len: usize, cap: usize) -> Self {
         Self {
-            data: Vec::from_raw_parts(ptr, len, cap)
+            // SAFETY: The caller must uphold all Vec::from_raw_parts requirements.
+            data: unsafe { Vec::from_raw_parts(ptr, len, cap) }
         }
     }
 }

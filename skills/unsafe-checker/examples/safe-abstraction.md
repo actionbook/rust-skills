@@ -39,7 +39,8 @@ impl<'a, T> SafeSlice<'a, T> {
     /// `index` must be less than `self.len()`.
     pub unsafe fn get_unchecked(&self, index: usize) -> &T {
         debug_assert!(index < self.len);
-        &*self.ptr.add(index)
+        // SAFETY: The caller guarantees the index is in bounds; the slice remains live.
+        unsafe { &*self.ptr.add(index) }
     }
 
     pub fn len(&self) -> usize {
@@ -59,7 +60,7 @@ pub struct CBuffer {
     len: usize,
 }
 
-extern "C" {
+unsafe extern "C" {
     fn c_alloc(size: usize) -> *mut u8;
     fn c_free(ptr: *mut u8);
 }
@@ -92,7 +93,7 @@ impl Drop for CBuffer {
 }
 
 // Prevent double-free
-impl !Clone for CBuffer {}
+// CBuffer does not implement Clone or Copy.
 
 // Safe to send between threads (assuming c_alloc is thread-safe)
 unsafe impl Send for CBuffer {}

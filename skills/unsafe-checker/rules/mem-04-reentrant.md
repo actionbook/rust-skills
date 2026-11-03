@@ -20,7 +20,7 @@ Many C library functions use static buffers or global state, making them unsafe 
 ```rust
 use std::ffi::CStr;
 
-extern "C" {
+unsafe extern "C" {
     fn strtok(s: *mut i8, delim: *const i8) -> *mut i8;
     fn localtime(time: *const i64) -> *mut Tm;
     fn rand() -> i32;
@@ -52,7 +52,7 @@ fn bad_random() -> i32 {
 ## Good Example
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn strtok_r(s: *mut i8, delim: *const i8, saveptr: *mut *mut i8) -> *mut i8;
     fn localtime_r(time: *const i64, result: *mut Tm) -> *mut Tm;
     fn rand_r(seed: *mut u32) -> i32;
@@ -82,15 +82,15 @@ fn good_random(seed: &mut u32) -> i32 {
     unsafe { rand_r(seed) }
 }
 
-// BETTER: Use Rust standard library
+// BETTER: Use Rust's standard library for the time
 fn best_time() {
     use std::time::SystemTime;
     let now = SystemTime::now();  // Thread-safe!
 }
 
 fn best_random() -> u32 {
-    use rand::Rng;
-    rand::thread_rng().gen()  // Thread-safe!
+    // rand 0.9 provides `random` as a free function.
+    rand::random::<u32>()
 }
 ```
 

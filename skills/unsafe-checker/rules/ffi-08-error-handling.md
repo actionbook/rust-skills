@@ -21,14 +21,16 @@ FFI functions must use C-compatible error handling (return codes, errno, out par
 
 ```rust
 // DON'T: Return Result across FFI
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn bad_open(path: *const c_char) -> Result<Handle, Error> {
     // Result is not C-compatible!
     unimplemented!()
 }
 
 // DON'T: Return Option across FFI
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn bad_find(id: i32) -> Option<*mut Data> {
     // Option<*mut T> might work but is confusing
     unimplemented!()
@@ -49,7 +51,8 @@ const ERR_PERMISSION: c_int = 4;
 const ERR_UNKNOWN: c_int = -1;
 
 // DO: Return error code, output via pointer
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn open_file(
     path: *const c_char,
     out_handle: *mut *mut Handle
@@ -81,7 +84,8 @@ pub extern "C" fn open_file(
 
 // DO: Use errno for POSIX-style APIs
 #[cfg(unix)]
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn posix_style_read(
     fd: c_int,
     buf: *mut u8,
@@ -105,14 +109,19 @@ thread_local! {
     static LAST_ERROR: std::cell::RefCell<Option<String>> = std::cell::RefCell::new(None);
 }
 
-#[no_mangle]
-pub extern "C" fn get_error_message(buf: *mut c_char, len: usize) -> c_int {
+/// # Safety
+/// `buf` must be writable for `len` bytes and must not overlap the stored error.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn get_error_message(buf: *mut c_char, len: usize) -> c_int {
+    if buf.is_null() || len == 0 { return ERR_UNKNOWN; }
     LAST_ERROR.with(|e| {
         if let Some(msg) = e.borrow().as_ref() {
             let bytes = msg.as_bytes();
             let copy_len = std::cmp::min(bytes.len(), len.saturating_sub(1));
+            // SAFETY: The caller guarantees a writable, non-overlapping buffer of len bytes.
             unsafe {
-                std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf as *mut u8, copy_len);
+                std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf.cast::<u8>(), copy_len);
                 *buf.add(copy_len) = 0;
             }
             SUCCESS

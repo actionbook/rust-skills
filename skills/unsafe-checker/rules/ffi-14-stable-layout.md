@@ -21,7 +21,7 @@ FFI types should not change layout between versions. Use `#[repr(C)]` and avoid 
 
 ```rust
 // DON'T: Use Rust std types with unstable layout in FFI
-extern "C" {
+unsafe extern "C" {
     // Vec layout is not stable!
     fn bad_vec(v: Vec<i32>);
 
@@ -39,11 +39,8 @@ struct BadMixed {
     data: Vec<u8>,  // Vec is not C-compatible!
 }
 
-// DON'T: Use Option with non-null optimization assumptions
-#[repr(C)]
-struct BadOption {
-    value: Option<std::num::NonZeroU32>,  // Layout may change!
-}
+// Do not assume every Option<T> has a C-compatible layout. Consult the documented
+// representation and ABI guarantees for the specific T and intended C type.
 ```
 
 ## Good Example
@@ -69,20 +66,17 @@ struct GoodBuffer {
 }
 
 impl GoodBuffer {
-    fn from_vec(mut v: Vec<u8>) -> Self {
-        let buf = Self {
-            ptr: v.as_mut_ptr(),
-            len: v.len(),
-            cap: v.capacity(),
-        };
-        std::mem::forget(v);
-        buf
+    fn from_vec(v: Vec<u8>) -> Self {
+        let (ptr, len, cap) = v.into_raw_parts();
+        Self { ptr, len, cap }
     }
 
     /// # Safety
-    /// Must have been created by from_vec()
+    /// The parts must come from `from_vec`, remain unchanged and valid, and be
+    /// reconstructed exactly once. The caller must stop all accesses first.
     unsafe fn into_vec(self) -> Vec<u8> {
-        Vec::from_raw_parts(self.ptr, self.len, self.cap)
+        // SAFETY: The caller guarantees the original allocation and exclusive ownership.
+        unsafe { Vec::from_raw_parts(self.ptr, self.len, self.cap) }
     }
 }
 

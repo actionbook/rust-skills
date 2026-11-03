@@ -21,7 +21,7 @@ Data received from external sources (FFI, files, network) may be invalid. Valida
 
 ```rust
 // DON'T: Trust external data
-extern "C" {
+unsafe extern "C" {
     fn get_status() -> u8;
 }
 
@@ -79,19 +79,27 @@ fn good_convert() -> Result<Status, InvalidStatusError> {
     Status::try_from(raw)  // Returns error for invalid values
 }
 
-// DO: Handle invalid UTF-8
-fn good_string(ptr: *const c_char) -> Result<String, std::str::Utf8Error> {
+// DO: Handle invalid UTF-8 after the caller establishes pointer validity.
+/// # Safety
+/// If non-null, `ptr` must point to a readable NUL-terminated C string in one
+/// live allocation. The bytes must not change while this function reads them.
+unsafe fn good_string(ptr: *const c_char) -> Result<String, std::str::Utf8Error> {
     if ptr.is_null() {
         return Ok(String::new());
     }
+    // SAFETY: The caller guarantees the string is valid and immutable.
     let cstr = unsafe { CStr::from_ptr(ptr) };
     cstr.to_str().map(|s| s.to_owned())
 }
 
-fn good_string_lossy(ptr: *const c_char) -> String {
+/// # Safety
+/// If non-null, `ptr` must point to a readable NUL-terminated C string in one
+/// live allocation. The bytes must not change while this function reads them.
+unsafe fn good_string_lossy(ptr: *const c_char) -> String {
     if ptr.is_null() {
         return String::new();
     }
+    // SAFETY: The caller guarantees the string is valid and immutable.
     let cstr = unsafe { CStr::from_ptr(ptr) };
     cstr.to_string_lossy().into_owned()  // Replaces invalid UTF-8
 }
@@ -99,7 +107,10 @@ fn good_string_lossy(ptr: *const c_char) -> String {
 // DO: Validate sizes
 const MAX_REASONABLE_SIZE: usize = 100 * 1024 * 1024;  // 100 MB
 
-fn good_size(ptr: *const u8, len: usize) -> Result<Vec<u8>, ValidationError> {
+/// # Safety
+/// If non-null, `ptr` must be valid for `len` initialized bytes in one live
+/// allocation, and the bytes must not be mutated during this call.
+unsafe fn good_size(ptr: *const u8, len: usize) -> Result<Vec<u8>, ValidationError> {
     if ptr.is_null() {
         return Err(ValidationError::NullPointer);
     }
@@ -107,8 +118,7 @@ fn good_size(ptr: *const u8, len: usize) -> Result<Vec<u8>, ValidationError> {
         return Err(ValidationError::SizeTooLarge);
     }
 
-    // Still need to trust that ptr points to len valid bytes
-    // Document this as a caller requirement
+    // SAFETY: The caller guarantees the allocation and access requirements.
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
     Ok(slice.to_vec())
 }
@@ -128,7 +138,7 @@ fn good_size(ptr: *const u8, len: usize) -> Result<Vec<u8>, ValidationError> {
 | Enum discriminant | Match against valid values |
 | String | Check UTF-8 or use lossy conversion |
 | Size/length | Check against maximum |
-| Pointer | Check for null |
+| Pointer | Check for null; require and document validity, alignment, lifetime, and aliasing separately |
 | Boolean | Explicit 0/1 check or treat any non-zero as true |
 | Float | Check for NaN, infinity if problematic |
 

@@ -55,10 +55,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 // Usage Examples
 // =====================================================
 
+/// Load and parse the configuration.
+///
+/// # Errors
+/// Returns an error if the file cannot be read or parsed.
 pub fn load_config(path: &str) -> Result<Config> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| Error::Io {
-            context: format!("reading config from {}", path),
+            context: format!("reading config from {path}"),
             source: e,
         })?;
 
@@ -68,6 +72,10 @@ pub fn load_config(path: &str) -> Result<Config> {
     Ok(Config { /* ... */ })
 }
 
+/// Look up a user.
+///
+/// # Errors
+/// Returns an error if the user is not found.
 pub fn get_user(id: &str) -> Result<User> {
     // Simulate not found
     if id == "unknown" {
@@ -79,6 +87,10 @@ pub fn get_user(id: &str) -> Result<User> {
     Ok(User { /* ... */ })
 }
 
+/// Validate user input.
+///
+/// # Errors
+/// Returns an error if input is empty.
 pub fn validate_input(input: &str) -> Result<()> {
     if input.is_empty() {
         return Err(Error::InvalidInput("input cannot be empty".to_string()));

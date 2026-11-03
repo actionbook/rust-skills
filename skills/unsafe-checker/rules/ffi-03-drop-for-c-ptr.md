@@ -20,7 +20,7 @@ When wrapping a C pointer that owns memory, implement `Drop` to call the appropr
 ## Bad Example
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn create_resource() -> *mut Resource;
     fn free_resource(r: *mut Resource);
 }
@@ -54,7 +54,7 @@ impl Drop for BadHandle {
 ```rust
 use std::ptr::NonNull;
 
-extern "C" {
+unsafe extern "C" {
     fn create_resource() -> *mut Resource;
     fn free_resource(r: *mut Resource);
 }
@@ -86,7 +86,7 @@ impl Drop for ResourceHandle {
 }
 
 // Prevent accidental copies that would cause double-free
-impl !Clone for ResourceHandle {}
+// ResourceHandle does not implement Clone or Copy.
 
 // DO: Document ownership transfer
 impl ResourceHandle {

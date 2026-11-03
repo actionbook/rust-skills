@@ -34,6 +34,15 @@ user-invocable: false
 | Use `format!` | Over string concatenation with `+` |
 | Avoid nested iteration | `contains()` on string is O(n*m) |
 
+For a byte limit on UTF-8 text, `str::floor_char_boundary` finds a valid boundary at or
+before the limit. It preserves UTF-8 validity, not whole grapheme clusters. Use a Unicode
+segmentation library when user-perceived characters must remain intact.
+
+For unsigned divisibility checks, consider `is_multiple_of` when it matches the intended
+zero-divisor behavior: `0.is_multiple_of(0)` is true and other values return false. This
+differs from `% 0`, which panics. For arithmetic, choose checked, saturating, wrapping, or
+strict operations according to the required overflow behavior.
+
 ## Error Handling
 
 | Rule | Guideline |
@@ -72,16 +81,28 @@ user-invocable: false
 | Avoid unless necessary | Prefer functions/generics |
 | Follow Rust syntax | Macro input should look like Rust |
 
-## Deprecated → Better
+`macro_rules!` `expr` fragments match const blocks and `_`
+expressions. Check arm order when migrating; use `expr_2021` only when preserving the
+previous matching behavior is intentional. `gen` is reserved: choose another name for
+new identifiers, or use `r#gen` when compatibility requires the existing name.
 
-| Deprecated | Better | Since |
-|------------|--------|-------|
-| `lazy_static!` | `std::sync::OnceLock` | 1.70 |
-| `once_cell::Lazy` | `std::sync::LazyLock` | 1.80 |
-| `std::sync::mpsc` | `crossbeam::channel` | - |
-| `std::sync::Mutex` | `parking_lot::Mutex` | - |
-| `failure`/`error-chain` | `thiserror`/`anyhow` | - |
-| `try!()` | `?` operator | 2018 |
+## Standard library and crate choices
+
+| Need | Guidance |
+|------|----------|
+| Lazy initialization | Choose `OnceLock` or `LazyLock`; `once_cell` and `lazy_static` remain valid when their APIs or MSRV are needed. |
+| Channels | `std::sync::mpsc` works for multi-producer, single-consumer channels; use a crate when its extra features are needed. |
+| Mutex | `std::sync::Mutex` is a valid default; compare poisoning and other semantics before choosing `parking_lot`. |
+| Errors | Choose `thiserror` for typed errors and `anyhow` for application context when appropriate. |
+| Error propagation | Prefer `?` to the deprecated `try!()` macro. |
+
+Use `clippy::all` and `clippy::pedantic` for the project's default lint groups. Restriction
+lints such as `unwrap_used` and `undocumented_unsafe_blocks` require explicit configuration;
+choose them based on the project's needs rather than enabling the whole restriction group.
+Respect an existing project's edition and minimum Rust version.
+For CI, `CARGO_BUILD_WARNINGS=deny cargo check` makes Cargo fail the build on warnings.
+Configure individual rustc and Clippy lint levels separately, and review warnings before
+denying them; the `linker_messages` lint has special behavior.
 
 ## Quick Reference
 

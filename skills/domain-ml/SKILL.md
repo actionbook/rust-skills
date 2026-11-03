@@ -62,6 +62,9 @@ From constraints to design (Layer 2):
     ↓ m07-concurrency: Async data loading
     ↓ candle/tch-rs: CUDA backend
 
+"Need faster CPU numerical kernels"
+    ↓ m10-performance: Profile and evaluate SIMD vectorization
+
 "Need model loading"
     ↓ m12-lifecycle: Lazy init, caching
     ↓ tract: ONNX runtime

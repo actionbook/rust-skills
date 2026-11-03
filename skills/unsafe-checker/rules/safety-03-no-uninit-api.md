@@ -103,7 +103,7 @@ let mut vec = Vec::with_capacity(100);
 // vec.len() is 0, capacity is 100
 // No uninitialized memory is accessible
 
-// Pattern 3: Box::new_uninit (nightly)
+// Pattern 3: Box::new_uninit (stable)
 let mut boxed = Box::<[u8; 1024]>::new_uninit();
 boxed.write([0u8; 1024]);
 let boxed = unsafe { boxed.assume_init() };

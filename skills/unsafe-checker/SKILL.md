@@ -52,27 +52,34 @@ pub unsafe fn dangerous() { ... }
 | `static mut` | Synchronization guaranteed |
 | `impl Send/Sync` | Actually thread-safe |
 
+Foreign declaration blocks require `unsafe extern`, and `no_mangle`,
+`export_name`, and `link_section` require `#[unsafe(...)]`. Document the declaration or
+attribute's actual safety requirements. `unsafe_op_in_unsafe_fn` warns by default; put
+each unsafe operation in an explicit block with a `// SAFETY:` explanation. References to
+`static mut` are denied by default; prefer synchronized types and do not treat raw pointers
+alone as a safety guarantee. Unix `CommandExt::before_exec` is also unsafe.
+
 ## Common Errors
 
 | Error | Fix |
 |-------|-----|
-| Null pointer deref | Check for null before deref |
+| Null pointer deref | Check for null and prove alignment, initialization, lifetime, and access validity |
 | Use after free | Ensure lifetime validity |
 | Data race | Add proper synchronization |
 | Alignment violation | Use `#[repr(C)]`, check alignment |
 | Invalid bit pattern | Use `MaybeUninit` |
 | Missing SAFETY comment | Add `// SAFETY:` |
 
-## Deprecated → Better
+## Unsafe patterns to reconsider
 
-| Deprecated | Use Instead |
+| Pattern | Alternative |
 |------------|-------------|
 | `mem::uninitialized()` | `MaybeUninit<T>` |
 | `mem::zeroed()` for refs | `MaybeUninit<T>` |
 | Raw pointer arithmetic | `NonNull<T>`, `ptr::add` |
 | `CString::new().unwrap().as_ptr()` | Store `CString` first |
 | `static mut` | `AtomicT` or `Mutex` |
-| Manual extern | `bindgen` |
+| Handwritten bindings for a complex C interface | Consider `bindgen`; review generated declarations and safety contracts |
 
 ## FFI Crates
 

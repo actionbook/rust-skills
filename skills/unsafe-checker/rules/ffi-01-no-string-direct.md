@@ -21,7 +21,7 @@ Use `CString` and `CStr` for string handling at FFI boundaries. Never pass Rust 
 ## Bad Example
 
 ```rust
-extern "C" {
+unsafe extern "C" {
     fn c_print(s: *const u8);
     fn c_strlen(s: *const u8) -> usize;
 }
@@ -52,7 +52,7 @@ extern "C" fn bad_callback(s: String) {  // Wrong!
 use std::ffi::{CString, CStr};
 use std::os::raw::c_char;
 
-extern "C" {
+unsafe extern "C" {
     fn c_print(s: *const c_char);
     fn c_strlen(s: *const c_char) -> usize;
     fn c_get_string() -> *const c_char;

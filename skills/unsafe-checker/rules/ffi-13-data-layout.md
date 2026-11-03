@@ -29,7 +29,7 @@ struct BadStruct {
 // Rust may reorder to: b, a, c (for better packing)
 // C expects: a, padding, b, c, padding
 
-extern "C" {
+unsafe extern "C" {
     fn use_struct(s: *const BadStruct);  // Layout mismatch!
 }
 
@@ -102,10 +102,9 @@ struct Verified {
 const _: () = {
     assert!(size_of::<Verified>() == 12);
     assert!(align_of::<Verified>() == 4);
-    // offset_of! requires nightly or crate
-    // assert!(offset_of!(Verified, a) == 0);
-    // assert!(offset_of!(Verified, b) == 4);
-    // assert!(offset_of!(Verified, c) == 8);
+    assert!(offset_of!(Verified, a) == 0);
+    assert!(offset_of!(Verified, b) == 4);
+    assert!(offset_of!(Verified, c) == 8);
 };
 
 // Runtime verification

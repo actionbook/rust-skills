@@ -201,6 +201,79 @@ let count = items.iter().filter(|x| x.valid).count();
 
 ---
 
+## SIMD with fearless_simd
+
+SIMD applies the same operation to several values in one instruction. Consider it for
+measured hot loops over independent, contiguous data, such as image or numerical kernels.
+First benchmark a straightforward scalar implementation in release mode: the compiler may
+already vectorize it. Small inputs, branching, data conversion, or memory bandwidth can
+make explicit SIMD slower. SIMD works within a thread; Rayon distributes work across
+threads. They can be used separately or together, with each Rayon chunk processed by SIMD.
+
+For fixed-size overlapping windows, consider slice `array_windows` when array patterns make
+the loop clearer. Floating-point `algebraic_add` and related methods permit reordering and
+other optimizations that can change results. Use them only when the numerical contract
+permits those changes, including NaN and infinity behavior, and benchmark them.
+Some architecture intrinsics are safe within an appropriately enabled target-feature
+context. The caller must still establish that the CPU supports the feature and provide a
+fallback when deploying to heterogeneous machines.
+
+For hot paths that repeatedly format integers, `std::fmt::NumBuffer` and integer
+`format_into` provide a reusable stack buffer. The returned string borrows that buffer.
+Compare against existing formatting in a representative benchmark before changing code.
+
+[`fearless_simd` 1.2.0](https://docs.rs/fearless_simd/1.2.0/fearless_simd/)
+provides generic vector types and dispatch across supported SIMD levels. It and the
+optional, separately versioned [`fearless_simd_macros`](https://docs.rs/fearless_simd_macros/0.1.0/fearless_simd_macros/)
+require Rust 1.89. Check the selected versions and the target project's MSRV before adding
+them; do not change an existing project's MSRV without considering its compatibility needs.
+
+```toml
+[dependencies]
+fearless_simd = "1.2"
+fearless_simd_macros = "0.1"
+```
+
+The example processes each full native-width vector and then its remaining elements.
+`Level::new()` detects the available level, and `dispatch!` selects a matching implementation.
+The `#[simd]` attribute creates the SIMD execution context; the macro crate is optional,
+but without it the context must be managed explicitly for good performance.
+
+```rust
+use fearless_simd::{dispatch, prelude::*, Level};
+use fearless_simd_macros::simd;
+
+#[simd]
+fn halve<S: Simd>(simd: S, values: &mut [f32]) {
+    let mut chunks = values.chunks_exact_mut(S::f32s::LEN);
+    for chunk in &mut chunks {
+        let vector = S::f32s::from_slice(simd, chunk);
+        (vector * 0.5).store_slice(chunk);
+    }
+    for value in chunks.into_remainder() {
+        *value *= 0.5;
+    }
+}
+
+fn main() {
+    let mut values = [2.0_f32, 4.0, 6.0, 8.0, 10.0];
+    let level = Level::new();
+    dispatch!(level, simd => halve(simd, &mut values));
+    assert_eq!(values, [1.0, 2.0, 3.0, 4.0, 5.0]);
+}
+```
+
+For a real kernel, test against a scalar reference, including empty and uneven lengths,
+overflow and floating-point edge cases where applicable. SIMD reductions can change
+floating-point operation order, so use a tolerance appropriate to the application. Benchmark
+representative sizes on deployment hardware, including dispatch and tail handling. Reuse a
+detected level when appropriate, and consider multiversioning's build-time and binary-size
+costs. Check the [upstream guide](https://github.com/linebender/fearless_simd) for target
+support and fallback behavior. WebAssembly SIMD requires separate builds and host-side
+feature detection rather than ordinary runtime CPU dispatch.
+
+---
+
 ## Parallelism with Rayon
 
 ```rust

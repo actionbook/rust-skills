@@ -28,7 +28,7 @@ fn bad_cross_process(ptr: *mut i32) {
 }
 
 // DON'T: Modify library internals
-extern "C" {
+unsafe extern "C" {
     static mut LIBRARY_INTERNAL: i32;
 }
 
@@ -66,7 +66,7 @@ fn shared_memory_example() {
 
 // DO: Use proper FFI for library interaction
 mod ffi {
-    extern "C" {
+    unsafe extern "C" {
         pub fn library_set_value(value: i32);
         pub fn library_get_value() -> i32;
     }

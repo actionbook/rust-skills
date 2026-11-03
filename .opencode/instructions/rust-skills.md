@@ -9,7 +9,7 @@ When creating Rust projects or Cargo.toml files, ALWAYS use:
 ```toml
 [package]
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.99"
 
 [lints.rust]
 unsafe_code = "warn"
@@ -83,4 +83,4 @@ Ask about:
 - "How to use Arc<Mutex<T>>?"
 - "Best practices for error handling"
 - "Review my unsafe code"
-- "What's new in Rust 1.85?"
+- "What's new in the latest Rust release?"

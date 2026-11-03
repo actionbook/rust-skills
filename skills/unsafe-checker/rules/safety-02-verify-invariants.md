@@ -55,7 +55,7 @@ unsafe fn process(ptr: *const Data, len: usize) {
 
     for i in 0..len {
         // SAFETY: Caller guarantees ptr points to len valid items
-        let item = &*ptr.add(i);
+        let item = unsafe { &*ptr.add(i) };
         process_item(item);
     }
 }

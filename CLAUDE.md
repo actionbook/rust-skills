@@ -137,8 +137,8 @@ When creating new Rust projects or Cargo.toml files, use these defaults:
 
 ```toml
 [package]
-edition = "2024"  # ALWAYS use latest stable edition
-rust-version = "1.85"  # Minimum supported Rust version
+edition = "2024"
+rust-version = "1.99"  # Minimum supported Rust version
 
 [lints.rust]
 unsafe_code = "warn"
@@ -149,6 +149,6 @@ pedantic = "warn"
 ```
 
 **Rules:**
-- ALWAYS use `edition = "2024"` (not 2021 or earlier)
+- Use `edition = "2024"` for new projects
 - Include `rust-version` for MSRV clarity
 - Enable clippy lints by default

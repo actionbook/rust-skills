@@ -14,14 +14,14 @@ Use type aliases from `std::os::raw` or the `libc` crate for C-compatible types.
 ## Rationale
 
 - C types have platform-dependent sizes (`int` is not always 32 bits)
-- `long` is 32 bits on Windows, 64 bits on Unix
+- `long` varies by ABI; it is 32 bits on Windows and often, but not always, 64 bits on Unix
 - Using Rust primitives directly causes portability bugs
 
 ## Bad Example
 
 ```rust
 // DON'T: Use Rust types directly for C interop
-extern "C" {
+unsafe extern "C" {
     fn c_function(x: i32, y: i64) -> i32;  // Might not match C types!
 }
 
@@ -40,14 +40,14 @@ struct BadStruct {
 use std::os::raw::{c_int, c_long, c_char, c_void};
 
 // DO: Use std::os::raw types
-extern "C" {
+unsafe extern "C" {
     fn c_function(x: c_int, y: c_long) -> c_int;
 }
 
 // DO: Use libc for more types
 use libc::{size_t, ssize_t, off_t, pid_t, time_t};
 
-extern "C" {
+unsafe extern "C" {
     fn read(fd: c_int, buf: *mut c_void, count: size_t) -> ssize_t;
     fn lseek(fd: c_int, offset: off_t, whence: c_int) -> off_t;
     fn getpid() -> pid_t;
@@ -82,8 +82,8 @@ struct PointerSized {
 | `long long` | `c_longlong` | Usually i64 |
 | `size_t` | `usize` or `libc::size_t` | |
 | `ssize_t` | `isize` or `libc::ssize_t` | |
-| `float` | `c_float` / `f32` | |
-| `double` | `c_double` / `f64` | |
+| `float` | `c_float` | Use the target's C ABI type. |
+| `double` | `c_double` | Its width is target-dependent; do not assume `f64` on every target. |
 | `void*` | `*mut c_void` | |
 | `const void*` | `*const c_void` | |
 
@@ -96,8 +96,9 @@ type PtrDiff = i64;
 #[cfg(target_pointer_width = "32")]
 type PtrDiff = i32;
 
-// Better: use isize
-let diff: isize = ptr1 as isize - ptr2 as isize;
+// Use ptr::offset_from only when its same-allocation and alignment requirements hold.
+// SAFETY: ptr1 and ptr2 point into the same live allocation of u8 values.
+let diff: isize = unsafe { ptr1.offset_from(ptr2) };
 ```
 
 ## Checklist

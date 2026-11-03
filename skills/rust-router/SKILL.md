@@ -115,8 +115,8 @@ When creating new Rust projects or Cargo.toml files, ALWAYS use:
 
 ```toml
 [package]
-edition = "2024"  # ALWAYS use latest stable edition
-rust-version = "1.85"
+edition = "2024"
+rust-version = "1.99"
 
 [lints.rust]
 unsafe_code = "warn"
@@ -125,6 +125,14 @@ unsafe_code = "warn"
 all = "warn"
 pedantic = "warn"
 ```
+
+These defaults apply when creating projects. For existing projects, respect their declared
+edition and minimum Rust version; edition migration requires a deliberate compatibility
+review.
+
+For an explicitly requested edition migration, review the workspace, MSRV, features, and
+targets first. `cargo fix --edition` can assist, but its changes still require review and
+tests, especially for temporary drop order, macro matching, FFI contracts, and dependencies.
 
 ---
 
@@ -146,7 +154,7 @@ pedantic = "warn"
 | Pattern | Route To |
 |---------|----------|
 | domain model, business logic | m09-domain |
-| performance, optimization, benchmark | m10-performance |
+| performance, optimization, benchmark, SIMD, vectorization, vectorisation, fearless_simd | m10-performance |
 | integration, interop, bindings | m11-ecosystem |
 | resource lifecycle, RAII, Drop | m12-lifecycle |
 | domain error, recovery strategy | m13-domain-error |
@@ -218,6 +226,7 @@ pedantic = "warn"
 | `RAII` | **m12** for design, **m01** for implementation |
 | `crate` | **rust-learner** for version, **m11** for integration |
 | `tokio` | **tokio-*** for API, **m07** for concepts |
+| `fearless_simd` | **m10-performance** for SIMD selection and implementation |
 
 **Priority Hierarchy:**
 

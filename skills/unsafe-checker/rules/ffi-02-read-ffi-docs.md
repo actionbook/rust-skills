@@ -58,7 +58,7 @@ if let Some(s) = os_str.to_str() {
 ```rust
 use std::ffi::c_void;
 
-extern "C" {
+unsafe extern "C" {
     fn get_handle() -> *mut c_void;
     fn use_handle(h: *mut c_void);
 }

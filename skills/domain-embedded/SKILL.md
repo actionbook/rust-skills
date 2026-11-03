@@ -31,6 +31,13 @@ user-invocable: false
 
 ## Critical Constraints
 
+### Target selection
+
+Prefer a built-in target supported by the device and its libraries. Passing a custom JSON
+target specification to `rustc` requires nightly Rust; building `core` for such a target
+also requires nightly tooling. Check the target and board support before changing an
+existing firmware project's toolchain or minimum Rust version.
+
 ### No Dynamic Allocation
 
 ```
@@ -65,6 +72,9 @@ From constraints to design (Layer 2):
 "Need no_std compatible data structures"
     ↓ m02-resource: heapless collections
     ↓ Static sizing: heapless::Vec<T, N>
+
+"Need a compact message format for no_std"
+    ↓ m11-ecosystem: postcard (Serde-compatible binary, varint wire format)
 
 "Need interrupt-safe state"
     ↓ m03-mutability: Mutex<RefCell<Option<T>>>
@@ -101,6 +111,7 @@ From constraints to design (Layer 2):
 | Runtime (ARM) | cortex-m-rt |
 | Panic handler | panic-halt, panic-probe |
 | Collections | heapless |
+| Serialization | postcard |
 | HAL traits | embedded-hal |
 | Logging | defmt |
 | Flash/debug | probe-run |
@@ -113,6 +124,7 @@ From constraints to design (Layer 2):
 | Entry point | Startup | `#[entry]` or embassy |
 | Static state | ISR access | `Mutex<RefCell<Option<T>>>` |
 | Fixed buffers | No heap | `heapless::Vec<T, N>` |
+| Wire serialization | Compact binaries | `postcard::to_vec` (heapless output) |
 
 ## Code Pattern: Static Peripheral
 

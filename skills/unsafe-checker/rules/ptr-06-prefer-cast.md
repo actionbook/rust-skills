@@ -15,7 +15,7 @@ Use the `cast()` method instead of `as` for pointer type conversions. It's clear
 ## Rationale
 
 - `cast()` only changes the pointed-to type, not pointer properties
-- `as` can accidentally convert to integer and back, losing provenance
+- `as` can accidentally convert to an integer and use exposed provenance
 - `cast()` is more explicit about intent
 - Better tooling support (clippy, miri)
 
@@ -27,10 +27,10 @@ fn bad_cast(ptr: *const u8) -> *const i32 {
     ptr as *const i32  // Works, but less clear
 }
 
-// DON'T: Accidental provenance loss
+// Avoid accidental exposed-provenance round trips
 fn bad_roundtrip(ptr: *const u8) -> *const u8 {
-    let addr = ptr as usize;   // Converts to integer
-    addr as *const u8          // Loses provenance information!
+    let addr = ptr as usize;   // Exposes provenance as part of the cast
+    addr as *const u8          // uses exposed provenance, which is harder to reason about
 }
 
 // DON'T: Multiple `as` casts in chain
@@ -62,8 +62,7 @@ fn good_chain(ptr: *const u8) -> *mut i32 {
     ptr.cast_mut().cast::<i32>()
 }
 
-// DO: Use with_addr() for address manipulation (nightly)
-#[cfg(feature = "strict_provenance")]
+// DO: Use with_addr() for address manipulation
 fn good_provenance(ptr: *const u8, new_addr: usize) -> *const u8 {
     ptr.with_addr(new_addr)  // Preserves provenance
 }
@@ -76,7 +75,7 @@ fn good_provenance(ptr: *const u8, new_addr: usize) -> *const u8 {
 | `.cast::<U>()` | `*T` | `*U` | Changes pointee type |
 | `.cast_mut()` | `*const T` | `*mut T` | Removes const |
 | `.cast_const()` | `*mut T` | `*const T` | Adds const |
-| `.addr()` | `*T` | `usize` | Gets address (nightly) |
+| `.addr()` | `*T` | `usize` | Gets address |
 | `.with_addr(usize)` | `*T` | `*T` | Changes address, keeps provenance |
 | `.map_addr(fn)` | `*T` | `*T` | Transforms address |
 
@@ -85,17 +84,17 @@ fn good_provenance(ptr: *const u8, new_addr: usize) -> *const u8 {
 ```rust
 // Provenance = permission to access memory
 
-// BAD: Loses provenance
+// Avoid exposed-provenance round trips when strict provenance works
 let ptr: *const u8 = &data as *const u8;
 let addr = ptr as usize;
-let ptr2 = addr as *const u8;  // ptr2 has no provenance!
+let ptr2 = addr as *const u8;  // exposed provenance has portability and reasoning limitations
 
-// GOOD: Preserves provenance (nightly strict_provenance)
-let ptr2 = ptr.with_addr(addr);  // Still has permission
+// GOOD: Preserves provenance
+let ptr2 = ptr.with_addr(addr);  // Preserves provenance; access still requires a valid address
 
 // GOOD: Use expose/from_exposed when provenance must cross integer
-let addr = ptr.expose_addr();  // "Expose" the provenance
-let ptr2 = std::ptr::from_exposed_addr(addr);  // Recover it
+let addr = ptr.expose_provenance();  // "Expose" the provenance
+let ptr2 = std::ptr::with_exposed_provenance(addr);  // Uses exposed provenance
 ```
 
 ## Checklist
