@@ -1,5 +1,10 @@
 # Error Handling Patterns
 
+When converting owned bytes to text, `String::from_utf8` preserves invalid input in its
+error. If replacement characters are acceptable, use `String::from_utf8_lossy_owned`.
+After a failed conversion, `FromUtf8Error::into_utf8_lossy` recovers lossy text. Do not use
+lossy conversion when exact bytes are required.
+
 ## The ? Operator
 
 ### Basic Usage

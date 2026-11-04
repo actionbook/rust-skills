@@ -96,11 +96,11 @@ From design to implementation:
 
 | Type | Ownership | Thread-Safe | Use When |
 |------|-----------|-------------|----------|
-| `Box<T>` | Single | Yes | Heap allocation, recursive types |
+| `Box<T>` | Single | When `T` meets the relevant `Send`/`Sync` bounds | Heap allocation, recursive types |
 | `Rc<T>` | Shared | No | Single-thread shared ownership |
-| `Arc<T>` | Shared | Yes | Multi-thread shared ownership |
+| `Arc<T>` | Shared | When `T` meets the relevant `Send`/`Sync` bounds | Multi-thread shared ownership |
 | `Weak<T>` | Weak ref | Same as Rc/Arc | Break reference cycles |
-| `Cell<T>` | Single | No | Interior mutability (Copy types) |
+| `Cell<T>` | Single | No | Interior mutability through whole-value operations |
 | `RefCell<T>` | Single | No | Interior mutability (runtime check) |
 
 ## Decision Flowchart
@@ -121,9 +121,15 @@ Have reference cycles?
 Need interior mutability?
 ├─ Yes → Thread-safe needed?
 │        ├─ Yes → Mutex<T> or RwLock<T>
-│        └─ No → T: Copy? → Cell<T> : RefCell<T>
+│        └─ No → Whole-value operations? → Cell<T> : RefCell<T>
 └─ No → Use &mut T
 ```
+
+When ownership must cross a raw-pointer boundary, `Vec::into_raw_parts` and
+`Vec::into_parts` expose the allocation together with its length and capacity. Reconstruct
+it exactly once with the matching API only when all allocator, layout, initialization, and
+ownership requirements hold. For `Box`, prefer `into_raw` or `into_non_null` for explicit
+ownership transfer. Do not reconstruct and free a box through a reference from `Box::leak`.
 
 ---
 

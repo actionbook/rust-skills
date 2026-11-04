@@ -9,6 +9,10 @@ This directory contains test scenarios for validating rust-skills functionality.
 ```
 tests/
 ├── README.md
+├── dsh/                    # DeepSeek Harness bundle tests
+│   ├── provider.test.mjs   # skill provider and frontmatter parsing
+│   ├── crate-skills.test.mjs # dependency discovery and safe skill removal
+│   └── commands.json       # expected command names
 ├── scenarios/              # Test scenarios by category
 │   ├── ownership.md        # m01-m04 ownership/resource tests
 │   ├── layer2-skills.md    # m05, m09-m15 design skills
@@ -23,7 +27,8 @@ tests/
 │   └── m07-concurrency/
 │
 └── validation/             # Validation scripts
-    └── validate-skills.sh
+    ├── validate-skills.sh
+    └── validate-dsh-plugin.mjs
 ```
 
 ## Quick Test Reference
@@ -64,6 +69,21 @@ claude -p "tokio 最新版本"                # rust-learner
 ```bash
 ./tests/validation/validate-skills.sh
 ```
+
+### DeepSeek Harness Tests
+
+```bash
+# Unit tests for the provider and the crate-skills helper
+node --test
+
+# Bundle/manifest/skill/command validation
+node tests/validation/validate-dsh-plugin.mjs
+
+# Both, via the package script
+npm test
+```
+
+The DSH tests do not need `npm install` because the bundle has no runtime dependencies.
 
 ## Test Categories
 

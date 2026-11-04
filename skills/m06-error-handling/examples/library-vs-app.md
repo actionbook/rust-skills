@@ -1,5 +1,17 @@
 # Error Handling: Library vs Application
 
+For tests that assert a pattern, `std::assert_matches!` reports the actual value on failure.
+Import it explicitly and use it when the value implements `Debug`.
+
+```rust
+use std::assert_matches;
+
+fn main() {
+    let parsed = "42".parse::<u32>();
+    assert_matches!(parsed, Ok(42));
+}
+```
+
 ## Library Error Design
 
 ### Principles

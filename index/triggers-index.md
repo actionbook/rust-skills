@@ -46,7 +46,7 @@ Complete mapping of keywords to skills.
 | Keywords | Route To |
 |----------|----------|
 | domain model, DDD, business logic | m09-domain |
-| performance, optimization, benchmark, profiling | m10-performance |
+| performance, optimization, benchmark, profiling, SIMD, vectorization, vectorisation, fearless_simd | m10-performance |
 | crate, dependency, interop, ecosystem | m11-ecosystem |
 | RAII, Drop, resource lifecycle | m12-lifecycle |
 | domain error, retry, circuit breaker, recovery | m13-domain-error |

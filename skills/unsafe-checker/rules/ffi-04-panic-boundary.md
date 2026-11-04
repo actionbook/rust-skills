@@ -23,7 +23,8 @@ Panics must not unwind across FFI boundaries. Use `catch_unwind` or mark functio
 
 ```rust
 // DON'T: Allow panics to escape to C
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn callback(data: *const u8, len: usize) -> i32 {
     let slice = unsafe { std::slice::from_raw_parts(data, len) };
 
@@ -35,7 +36,8 @@ pub extern "C" fn callback(data: *const u8, len: usize) -> i32 {
 }
 
 // DON'T: Unwrap in extern functions
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn parse_config(path: *const c_char) -> i32 {
     let path = unsafe { CStr::from_ptr(path) };
     let config = std::fs::read_to_string(path.to_str().unwrap()).unwrap();  // Can panic!
@@ -51,13 +53,18 @@ use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 
 // DO: Catch panics at FFI boundary
-#[no_mangle]
-pub extern "C" fn safe_callback(data: *const u8, len: usize) -> c_int {
+/// # Safety
+/// `data` must point to `len` initialized bytes in one live allocation, with no
+/// mutation for the duration of the call, and `len` must not exceed `isize::MAX`.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_callback(data: *const u8, len: usize) -> c_int {
     let result = catch_unwind(AssertUnwindSafe(|| {
         if data.is_null() || len == 0 {
             return -1;
         }
 
+        // SAFETY: The caller guarantees the slice validity and lifetime.
         let slice = unsafe { std::slice::from_raw_parts(data, len) };
         let sum: i32 = slice.iter().map(|&x| x as i32).sum();
         sum
@@ -74,9 +81,13 @@ pub extern "C" fn safe_callback(data: *const u8, len: usize) -> c_int {
 }
 
 // DO: Use Result-based API internally
-#[no_mangle]
-pub extern "C" fn parse_config(path: *const c_char) -> c_int {
+/// # Safety
+/// `path` must point to a live, readable, NUL-terminated C string.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn parse_config(path: *const c_char) -> c_int {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), Box<dyn std::error::Error>> {
+        // SAFETY: The caller guarantees a valid NUL-terminated string.
         let path = unsafe { CStr::from_ptr(path) }.to_str()?;
         let _config = std::fs::read_to_string(path)?;
         Ok(())
@@ -96,7 +107,8 @@ pub extern "C" fn parse_config(path: *const c_char) -> c_int {
 }
 
 // DO: For Rust-calling-Rust across C, use "C-unwind"
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C-unwind" fn rust_callback_can_unwind() {
     // This is OK to panic if called from Rust through C
     // The "C-unwind" ABI allows unwinding
@@ -114,20 +126,23 @@ const ERR_INVALID_UTF8: c_int = -2;
 const ERR_IO: c_int = -3;
 const ERR_PANIC: c_int = -99;
 
-// Thread-local for detailed error
+// Thread-local storage owns the NUL-terminated message.
 thread_local! {
-    static LAST_ERROR: std::cell::RefCell<Option<String>> = std::cell::RefCell::new(None);
+    static LAST_ERROR: std::cell::RefCell<Option<std::ffi::CString>> =
+        const { std::cell::RefCell::new(None) };
 }
 
-fn set_error(msg: String) {
+fn set_error(msg: std::ffi::CString) {
     LAST_ERROR.with(|e| *e.borrow_mut() = Some(msg));
 }
 
-#[no_mangle]
+/// The returned pointer is valid only on this thread, until the next error is
+/// stored or the thread exits. The caller must not free or mutate it.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn get_last_error() -> *const c_char {
     LAST_ERROR.with(|e| {
-        e.borrow().as_ref().map(|s| s.as_ptr() as *const c_char)
-            .unwrap_or(std::ptr::null())
+        e.borrow().as_ref().map_or(std::ptr::null(), |s| s.as_ptr())
     })
 }
 ```

@@ -1,6 +1,6 @@
 //! Worker pool template for CPU-bound tasks
 //!
-//! Uses crossbeam for better ergonomics than std::mpsc
+//! Uses crossbeam for better ergonomics than `std::mpsc`
 
 use std::sync::Arc;
 use std::thread;
@@ -61,7 +61,11 @@ where
         result_receiver
     }
 
-    /// Process all items and collect results
+    /// Process all items and collect results.
+    ///
+    /// # Panics
+    /// Panics if a worker disconnects before sending its result.
+    #[must_use]
     pub fn map(&self, items: Vec<T>) -> Vec<R> {
         let receivers: Vec<_> = items
             .into_iter()
@@ -91,7 +95,7 @@ where
 mod rayon_example {
     use rayon::prelude::*;
 
-    pub fn parallel_process(items: Vec<i32>) -> Vec<i32> {
+    pub fn parallel_process(items: &[i32]) -> Vec<i32> {
         items
             .par_iter()
             .map(|x| expensive_computation(*x))
@@ -123,7 +127,7 @@ fn main() {
     // Process batch
     let items = vec![1, 2, 3, 4, 5, 6, 7, 8];
     let results = pool.map(items);
-    println!("Results: {:?}", results);
+    println!("Results: {results:?}");
 
     // Cleanup
     pool.shutdown();

@@ -1,0 +1,11 @@
+{
+  "description": "Claude commands (commands/<name>.md) that have a DSH user-invocable skill wrapper (.dsh/skills/<name>/SKILL.md).",
+  "commands": [
+    "clean-crate-skills",
+    "crate-info",
+    "docs",
+    "rust-features",
+    "sync-crate-skills",
+    "update-crate-skill"
+  ]
+}

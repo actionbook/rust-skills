@@ -1,7 +1,7 @@
 {
   "name": "rust-skills",
   "version": "2.0.9",
-  "description": "Comprehensive Rust learning and development skills for Claude",
+  "description": "Comprehensive Rust learning and development skills for Claude Code and DeepSeek Harness",
   "author": "ZhangHanDong",
   "license": "MIT",
   "repository": "https://github.com/actionbook/rust-skills",
@@ -12,7 +12,8 @@
     "core_skills": 4,
     "utility_skills": 6,
     "experimental_skills": 1,
-    "total_skills": 32,
+    "lsp_skills": 6,
+    "total_skills": 38,
     "unsafe_rules": 47,
     "coding_guidelines": {
       "p_rules": 80,
@@ -67,6 +68,14 @@
     ],
     "experimental": [
       "meta-cognition-parallel"
+    ],
+    "lsp": [
+      "rust-call-graph",
+      "rust-code-navigator",
+      "rust-deps-visualizer",
+      "rust-refactor-helper",
+      "rust-symbol-analyzer",
+      "rust-trait-explorer"
     ]
   },
 
@@ -101,8 +110,7 @@
   ],
 
   "compatibility": {
-    "claude_code_min_version": "1.0.0",
-    "rust_version_coverage": "1.0.0 - 1.85.0"
+    "claude_code_min_version": "1.0.0"
   },
 
   "last_updated": "2025-01-22",

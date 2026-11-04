@@ -1,0 +1,64 @@
+{
+  "name": "rust-skills",
+  "version": "2.0.9",
+  "description": "Rust development skills and user-invocable commands for DeepSeek Harness, covering ownership, concurrency, error handling, unsafe code, domain patterns, and crate research.",
+  "type": "module",
+  "main": ".dsh/index.js",
+  "exports": {
+    ".": "./.dsh/index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    ".dsh",
+    "skills",
+    "locale/*.json",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./.dsh/cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0 <0.3.0"
+  },
+  "scripts": {
+    "test": "node --test && node tests/validation/validate-dsh-plugin.mjs",
+    "prepublishOnly": "node --test"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "rust",
+    "cargo",
+    "skills",
+    "commands",
+    "ownership",
+    "borrow-checker",
+    "async",
+    "tokio",
+    "error-handling",
+    "coding-guidelines",
+    "unsafe",
+    "ffi"
+  ],
+  "author": {
+    "name": "ZhangHanDong",
+    "url": "https://github.com/ZhangHanDong"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actionbook/rust-skills.git"
+  },
+  "homepage": "https://github.com/actionbook/rust-skills",
+  "bugs": {
+    "url": "https://github.com/actionbook/rust-skills/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

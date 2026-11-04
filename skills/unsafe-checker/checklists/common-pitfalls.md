@@ -127,7 +127,7 @@ fn good() {
 ```rust
 fn bad() {
     let x: u32 = 42;
-    let y: u64 = unsafe { std::mem::transmute(x) };  // UB: size mismatch!
+    let y: u64 = unsafe { std::mem::transmute(x) };  // Compiler error: size mismatch
 }
 ```
 
@@ -167,7 +167,8 @@ fn good(raw: u8) -> Option<Status> {
 
 **Bug:**
 ```rust
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 extern "C" fn callback(x: i32) -> i32 {
     if x < 0 {
         panic!("negative!");  // UB: unwinding across FFI!
@@ -178,7 +179,8 @@ extern "C" fn callback(x: i32) -> i32 {
 
 **Fix:**
 ```rust
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 extern "C" fn callback(x: i32) -> i32 {
     std::panic::catch_unwind(|| {
         if x < 0 {

@@ -9,7 +9,7 @@ impact: CRITICAL
 
 ## Summary
 
-Functions exported to C with `#[no_mangle] extern "C"` may be called from multiple threads. Ensure they are thread-safe.
+Functions exported to C with `#[unsafe(no_mangle)] extern "C"` may be called from multiple threads. Ensure they are thread-safe.
 
 ## Rationale
 
@@ -24,7 +24,8 @@ Functions exported to C with `#[no_mangle] extern "C"` may be called from multip
 // DON'T: Unsynchronized global state
 static mut COUNTER: i32 = 0;
 
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn increment() -> i32 {
     unsafe {
         COUNTER += 1;  // Data race if called from multiple threads!
@@ -37,7 +38,8 @@ thread_local! {
     static CONFIG: RefCell<Config> = RefCell::new(Config::default());
 }
 
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn set_config(value: i32) {
     // Different threads get different configs!
     // Is that what the C caller expects?
@@ -57,7 +59,8 @@ use std::sync::{Mutex, OnceLock};
 // DO: Use atomics for simple counters
 static COUNTER: AtomicI32 = AtomicI32::new(0);
 
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn increment() -> i32 {
     COUNTER.fetch_add(1, Ordering::SeqCst) + 1
 }
@@ -69,7 +72,8 @@ fn get_config() -> &'static Mutex<Config> {
     CONFIG.get_or_init(|| Mutex::new(Config::default()))
 }
 
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn set_config_value(value: i32) -> i32 {
     match get_config().lock() {
         Ok(mut config) => {
@@ -83,7 +87,8 @@ pub extern "C" fn set_config_value(value: i32) -> i32 {
 // DO: Document thread safety requirements
 /// Initializes the library. NOT thread-safe.
 /// Must be called once from main thread before any other function.
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn init() -> i32 {
     // One-time initialization
     0
@@ -91,7 +96,8 @@ pub extern "C" fn init() -> i32 {
 
 /// Processes data. Thread-safe.
 /// May be called from multiple threads concurrently.
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn process(data: *const u8, len: usize) -> i32 {
     // Uses only local state or synchronized globals
     0

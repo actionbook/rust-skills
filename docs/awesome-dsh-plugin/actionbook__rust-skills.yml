@@ -1,0 +1,6 @@
+url: https://github.com/actionbook/rust-skills
+name: actionbook/rust-skills
+category: skill
+description:
+  en: 'Rust development skills and slash commands for DeepSeek Harness: 38 skills covering ownership, concurrency, error handling, unsafe code, and domain patterns, plus /rust-features, /crate-info, /docs, /sync-crate-skills, /update-crate-skill, and /clean-crate-skills.'
+  zh: '面向 DeepSeek Harness 的 Rust 开发技能与斜杠命令：38 个技能覆盖所有权、并发、错误处理、不安全代码与领域模式，并提供 /rust-features、/crate-info、/docs、/sync-crate-skills、/update-crate-skill、/clean-crate-skills 六个命令。'

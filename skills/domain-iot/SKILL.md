@@ -87,6 +87,7 @@ From constraints to design (Layer 2):
 | Async (no_std) | embassy |
 | Logging (no_std) | defmt |
 | Logging (std) | tracing |
+| Serialization (no_std) | postcard |
 
 ## Design Patterns
 

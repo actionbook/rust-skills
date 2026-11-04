@@ -16,7 +16,7 @@ When working with raw file descriptors or handles, ensure they are valid for the
 - Raw handles can be closed by other code
 - Using a closed handle is undefined behavior
 - Handle reuse can cause data corruption
-- Rust 1.63+ provides I/O safety traits
+- Use I/O safety types to track ownership and borrowing of handles
 
 ## Bad Example
 
@@ -55,7 +55,7 @@ mod good_example {
     use std::os::unix::io::{AsFd, BorrowedFd, OwnedFd, FromRawFd, AsRawFd};
     use std::fs::File;
 
-    // DO: Use BorrowedFd for borrowed access (Rust 1.63+)
+    // DO: Use BorrowedFd for borrowed access
     fn good_read(fd: BorrowedFd<'_>) -> std::io::Result<Vec<u8>> {
         let mut buf = vec![0u8; 1024];
         // BorrowedFd guarantees the fd is valid for this call
@@ -115,7 +115,7 @@ mod good_example {
 }
 ```
 
-## I/O Safety Types (Rust 1.63+)
+## I/O Safety Types
 
 | Type | Meaning |
 |------|---------|
@@ -125,6 +125,8 @@ mod good_example {
 | `AsFd` | Trait for types that have a fd |
 | `From<OwnedFd>` | Create from owned fd |
 | `Into<OwnedFd>` | Convert to owned fd |
+
+These types require Rust 1.63 or newer. Check the declared MSRV when supporting older projects.
 
 ## Windows Equivalents
 

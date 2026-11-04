@@ -52,22 +52,20 @@ struct MyBox<T> {
 
 impl<T> MyBox<T> {
     pub fn new(value: T) -> Self {
-        let ptr = Box::into_raw(Box::new(value));
-        // SAFETY: Box::into_raw never returns null
-        let ptr = unsafe { NonNull::new_unchecked(ptr) };
+        let ptr = Box::into_non_null(Box::new(value));
         Self { ptr }
     }
 
     pub fn get(&self) -> &T {
-        // SAFETY: NonNull guarantees ptr is valid
+        // SAFETY: The allocation is live and initialized, and self guarantees shared access.
         unsafe { self.ptr.as_ref() }
     }
 }
 
 impl<T> Drop for MyBox<T> {
     fn drop(&mut self) {
-        // SAFETY: ptr was created from Box::into_raw
-        unsafe { drop(Box::from_raw(self.ptr.as_ptr())); }
+        // SAFETY: This pointer came from Box::into_non_null and is reclaimed exactly once.
+        unsafe { drop(Box::from_non_null(self.ptr)); }
     }
 }
 

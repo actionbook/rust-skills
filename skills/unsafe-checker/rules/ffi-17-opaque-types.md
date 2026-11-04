@@ -23,7 +23,7 @@ Instead of using `*mut c_void` for opaque C handles, create dedicated marker typ
 ```rust
 use std::ffi::c_void;
 
-extern "C" {
+unsafe extern "C" {
     fn create_database() -> *mut c_void;
     fn create_connection() -> *mut c_void;
     fn execute(conn: *mut c_void, query: *const i8);
@@ -62,7 +62,7 @@ pub struct Connection {
     _marker: PhantomData<(*mut u8, std::marker::PhantomPinned)>,
 }
 
-extern "C" {
+unsafe extern "C" {
     fn create_database() -> *mut Database;
     fn create_connection(db: *mut Database) -> *mut Connection;
     fn execute(conn: *mut Connection, query: *const i8) -> i32;

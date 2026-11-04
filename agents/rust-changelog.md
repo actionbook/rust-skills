@@ -4,7 +4,7 @@ Fetch Rust version changelog from releases.rs.
 
 ## URL
 
-`releases.rs/docs/<version>/` (e.g., `1.85`, `1.84.1`)
+`releases.rs/docs/<version>/` (e.g., `1.99`, `1.84.1`)
 
 ## Fetch
 

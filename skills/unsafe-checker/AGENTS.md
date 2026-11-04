@@ -20,7 +20,7 @@
 | safety-04 | P | Avoid Double-Free from Panic Safety Issues |
 | safety-05 | P | Consider Safety When Manually Implementing Auto Traits |
 | safety-06 | P | Do Not Expose Raw Pointers in Public APIs |
-| safety-07 | P | Provide Unsafe Counterparts for Performance Alongside Safe Methods |
+| safety-07 | P | Provide Unsafe Counterparts Only When Justified |
 | safety-08 | P | Mutable Return from Immutable Parameter is Wrong |
 | safety-09 | P | Add SAFETY Comment Before Any Unsafe Block |
 | safety-10 | G | Add Safety Section in Docs for Public Unsafe Functions |
@@ -91,9 +91,9 @@
 | `uninit_vec` | mem-06 | Initialization |
 | `mut_from_ref` | safety-08 | Aliasing |
 | `cast_ptr_alignment` | ptr-04 | Alignment |
-| `cast_ref_to_mut` | ptr-05 | Aliasing |
+| `invalid_reference_casting` (rustc) | ptr-05 | Aliasing |
 | `ptr_as_ptr` | ptr-06 | Pointer casting |
-| `unaligned_references` | ffi-11 | Packed structs |
+| `E0793` (rustc) | ffi-11 | Packed structs |
 | `debug_assert_with_mut_call` | safety-11 | Assertions |
 
 ## Quick Decision Tree

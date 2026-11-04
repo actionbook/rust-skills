@@ -74,8 +74,8 @@ From design to implementation:
 
 ```
 "Need mutable access from &self"
-    ↓ T: Copy → Cell<T>
-    ↓ T: !Copy → RefCell<T>
+    ↓ Copy or replace/take whole values → Cell<T>
+    ↓ Need dynamically checked references → RefCell<T>
 
 "Need thread-safe mutation"
     ↓ Simple counters → AtomicXxx
@@ -103,13 +103,29 @@ Never both simultaneously.
 | Pattern | Thread-Safe | Runtime Cost | Use When |
 |---------|-------------|--------------|----------|
 | `&mut T` | N/A | Zero | Exclusive mutable access |
-| `Cell<T>` | No | Zero | Copy types, no refs needed |
-| `RefCell<T>` | No | Runtime check | Non-Copy, need runtime borrow |
+| `Cell<T>` | No | Zero | Whole-value mutation, no refs needed |
+| `RefCell<T>` | No | Runtime check | Need runtime-checked references |
 | `Mutex<T>` | Yes | Lock contention | Thread-safe mutation |
 | `RwLock<T>` | Yes | Lock contention | Many readers, few writers |
 | `Atomic*` | Yes | Minimal | Simple types (bool, usize) |
 
 ## Error Code Reference
+
+For several mutable elements in one slice or `HashMap`, consider `get_disjoint_mut`.
+Slice access returns an error for overlapping or out-of-bounds indices. `HashMap` returns
+`None` for a missing key and panics for overlapping keys. Validate untrusted keys before
+calling it; use unchecked access only with a proof of safety.
+
+```rust
+fn increment_pair(values: &mut [i32], left: usize, right: usize) -> bool {
+    let Ok([first, second]) = values.get_disjoint_mut([left, right]) else {
+        return false;
+    };
+    *first += 1;
+    *second += 1;
+    true
+}
+```
 
 | Error | Cause | Quick Fix |
 |-------|-------|-----------|
@@ -124,9 +140,10 @@ Never both simultaneously.
 | Scenario | Choose |
 |----------|--------|
 | T: Copy, single-thread | `Cell<T>` |
-| T: !Copy, single-thread | `RefCell<T>` |
-| T: Copy, multi-thread | `AtomicXxx` |
-| T: !Copy, multi-thread | `Mutex<T>` or `RwLock<T>` |
+| Non-Copy, replace or take whole value | `Cell<T>` |
+| Need borrowed access, single-thread | `RefCell<T>` |
+| Supported atomic primitive, multi-thread | `AtomicXxx` |
+| Shared complex state, multi-thread | `Mutex<T>` or `RwLock<T>` |
 | Read-heavy, multi-thread | `RwLock<T>` |
 | Simple flags/counters | `AtomicBool`, `AtomicUsize` |
 

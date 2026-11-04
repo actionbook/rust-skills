@@ -1,6 +1,6 @@
 ---
 name: m10-performance
-description: "CRITICAL: Use for performance optimization. Triggers: performance, optimization, benchmark, profiling, flamegraph, criterion, slow, fast, allocation, cache, SIMD, make it faster, 性能优化, 基准测试"
+description: "CRITICAL: Use for performance optimization. Triggers: performance, optimization, benchmark, profiling, flamegraph, criterion, slow, fast, allocation, cache, SIMD, vectorization, vectorisation, fearless_simd, make it faster, 性能优化, 基准测试"
 user-invocable: false
 ---
 
@@ -26,6 +26,7 @@ Before optimizing:
 | Reduce allocations | Pre-allocate, reuse | `with_capacity`, object pools |
 | Improve cache | Contiguous data | `Vec`, `SmallVec` |
 | Parallelize | Data parallelism | `rayon`, threads |
+| Vectorize | Independent operations on many values | `fearless_simd`, compiler auto-vectorization |
 | Avoid copies | Zero-copy | References, `Cow<T>` |
 | Reduce indirection | Inline data | `smallvec`, arrays |
 
@@ -155,3 +156,6 @@ To implementation (Layer 1):
 | Concurrency options | m07-concurrency |
 | Smart pointer choice | m02-resource |
 | Domain requirements | domain-* |
+
+For SIMD selection, runtime dispatch, a complete example, and benchmarking advice, see
+[`patterns/optimization-guide.md`](patterns/optimization-guide.md#simd-with-fearless_simd).

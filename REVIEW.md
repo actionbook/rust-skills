@@ -176,7 +176,7 @@ m07-concurrency: E0277 (only for Send/Sync)
 | Query | Expected Skill | Keywords |
 |-------|----------------|----------|
 | "tokio 最新版本" | rust-learner | 最新版本 |
-| "Rust 1.85 有什么新特性" | rust-learner | Rust 1.85, 新特性 |
+| "最新 Rust 版本有什么新特性" | rust-learner | 最新版本, 新特性 |
 | "serde 文档" | rust-learner | 文档 |
 
 ## Router (rust-router)

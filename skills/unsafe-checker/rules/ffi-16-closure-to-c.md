@@ -21,7 +21,7 @@ C callbacks are function pointers without captured state. To pass Rust closures 
 
 ```rust
 // DON'T: Try to pass closure directly
-extern "C" {
+unsafe extern "C" {
     fn set_callback(cb: fn(i32) -> i32);  // Only works for non-capturing!
 }
 
@@ -43,73 +43,38 @@ fn bad_transmute() {
 
 ## Good Example
 
+This example assumes the C library calls the callback synchronously, on the calling thread,
+without reentrancy, and never retains `user_data`. Its documentation must guarantee all of
+those properties. A registration API that retains a callback needs a stable allocation,
+unregistration that waits for in-flight calls, and an owner that frees it only afterward.
+
 ```rust
-use std::os::raw::c_void;
-use std::ffi::c_int;
+use std::ffi::{c_int, c_void};
+use std::panic::{catch_unwind, AssertUnwindSafe};
 
-// C callback signature with user_data
-type CCallback = extern "C" fn(value: c_int, user_data: *mut c_void) -> c_int;
-
-extern "C" {
-    fn set_callback(cb: CCallback, user_data: *mut c_void);
-    fn remove_callback();
+unsafe extern "C" {
+    fn visit_values(callback: unsafe extern "C" fn(c_int, *mut c_void), data: *mut c_void);
 }
 
-// DO: Use trampoline pattern
-fn good_closure<F: FnMut(i32) -> i32>(mut closure: F) {
-    // Trampoline function that forwards to the closure
-    extern "C" fn trampoline<F: FnMut(i32) -> i32>(
-        value: c_int,
-        user_data: *mut c_void,
-    ) -> c_int {
-        let closure = unsafe { &mut *(user_data as *mut F) };
-        closure(value as i32) as c_int
-    }
-
-    let user_data = &mut closure as *mut F as *mut c_void;
-
-    unsafe {
-        set_callback(trampoline::<F>, user_data);
-        // Important: closure must live until callback is removed!
-    }
-}
-
-// DO: Box the closure for 'static lifetime
-struct CallbackHandle {
-    closure: Box<dyn FnMut(i32) -> i32>,
-}
-
-impl CallbackHandle {
-    fn new<F: FnMut(i32) -> i32 + 'static>(closure: F) -> Self {
-        Self { closure: Box::new(closure) }
-    }
-
-    fn register(&mut self) {
-        extern "C" fn trampoline(value: c_int, user_data: *mut c_void) -> c_int {
-            let closure = unsafe { &mut *(user_data as *mut Box<dyn FnMut(i32) -> i32>) };
-            closure(value as i32) as c_int
+fn visit_with<F: FnMut(c_int)>(mut callback: F) {
+    unsafe extern "C" fn trampoline<F: FnMut(c_int)>(value: c_int, data: *mut c_void) {
+        // SAFETY: The C contract passes the live, exclusively borrowed F provided below.
+        let callback = unsafe { &mut *data.cast::<F>() };
+        if catch_unwind(AssertUnwindSafe(|| callback(value))).is_err() {
+            // A panic must not unwind across a non-unwinding C ABI boundary.
+            std::process::abort();
         }
-
-        let user_data = &mut self.closure as *mut _ as *mut c_void;
-        unsafe { set_callback(trampoline, user_data); }
     }
-}
 
-impl Drop for CallbackHandle {
-    fn drop(&mut self) {
-        unsafe { remove_callback(); }
-        // Now safe to drop closure
-    }
-}
-
-// Usage
-fn example() {
-    let multiplier = 2;
-    let mut handle = CallbackHandle::new(move |x| x * multiplier);
-    handle.register();
-    // handle must live until callback is no longer needed
+    let data = (&mut callback as *mut F).cast::<c_void>();
+    // SAFETY: The C contract limits callback use to this call and excludes reentrancy.
+    unsafe { visit_values(trampoline::<F>, data) };
 }
 ```
+
+For asynchronous callbacks, never rely on a movable stack address or on a destructor
+always running: safe code can forget a guard. The allocation must stay valid if the guard
+is forgotten. Ensure the C library cannot call after unregistration or race with teardown.
 
 ## Trampoline Pattern
 

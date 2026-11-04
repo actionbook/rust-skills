@@ -393,20 +393,11 @@ mkdir -p ~/.claude/cache/rust-daily/
 **Notable Updates:**
 | Item | Summary | Link |
 |------|---------|------|
-| Rust 1.85 beta | New async closures stabilized | [→](https://blog.rust-lang.org) |
 | cargo-semver | Now detects more breaking changes | [→](https://github.com/...) |
 
 ---
 
 ## 📢 Official Announcements
-
-### Rust Blog
-
-#### Announcing Rust 1.85.0
-- **Link:** https://blog.rust-lang.org/2026/01/15/Rust-1.85.0.html
-- **Published:** 2026-01-15
-- **Key Takeaway:** Async closures are now stable! This enables more ergonomic async code patterns. Also includes improved compile times for large projects.
-- **Action Required:** Yes - update with `rustup update stable`
 
 ### Inside Rust Blog
 

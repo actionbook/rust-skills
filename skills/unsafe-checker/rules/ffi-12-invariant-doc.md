@@ -21,7 +21,7 @@ When receiving parameters from C, document what invariants you assume (non-null,
 
 ```rust
 // DON'T: Undocumented assumptions
-extern "C" {
+unsafe extern "C" {
     fn get_data() -> *mut Data;
 }
 
@@ -36,7 +36,8 @@ fn bad_use() -> &'static Data {
 }
 
 // DON'T: Silent assumptions in function signature
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn process(data: *const Data, len: usize) {
     // What if data is null?
     // What if len is wrong?
@@ -58,7 +59,7 @@ pub extern "C" fn process(data: *const Data, len: usize) {
 /// - Returned pointer is valid for the lifetime of the library
 /// - Returned pointer is aligned for `Data`
 /// - The `Data` struct is fully initialized
-extern "C" {
+unsafe extern "C" {
     fn get_data() -> *mut Data;
 }
 
@@ -92,11 +93,16 @@ fn documented_use() -> Option<&'static Data> {
 /// - `-1` if `data` is null
 /// - `-2` if `len` is invalid
 ///
+/// # Safety
+/// `data` must satisfy the allocation, alignment, initialization and lifetime
+/// requirements above. The array must not be mutated during the call.
+///
 /// # Thread Safety
 ///
-/// This function is thread-safe. The `data` array must not be mutated during the call.
-#[no_mangle]
-pub extern "C" fn process_documented(data: *const Data, len: usize) -> i32 {
+/// This function is thread-safe when the caller upholds these requirements.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn process_documented(data: *const Data, len: usize) -> i32 {
     // Verify invariants we can check
     if data.is_null() {
         return -1;

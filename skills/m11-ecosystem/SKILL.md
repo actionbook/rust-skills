@@ -30,6 +30,7 @@ Before adding dependencies:
 | Need | Choice | Crates |
 |------|--------|--------|
 | Serialization | Derive-based | serde, serde_json |
+| Binary serialization (no_std/embedded) | Compact, Serde-compatible | postcard |
 | Async runtime | tokio or async-std | tokio (most popular) |
 | HTTP client | Ergonomic | reqwest |
 | HTTP server | Modern | axum, actix-web |
@@ -37,6 +38,7 @@ Before adding dependencies:
 | CLI parsing | Derive-based | clap |
 | Error handling | App vs lib | anyhow, thiserror |
 | Logging | Facade | tracing, log |
+| SIMD vectorization | Generic vector operations | fearless_simd; see m10-performance |
 
 ---
 
@@ -107,7 +109,25 @@ To implementation (Layer 1):
 | Node.js ↔ Rust | `napi-rs` | Node addons |
 | WebAssembly | `wasm-bindgen` | Browser/WASI |
 
+When linking WebAssembly, undefined symbols are link errors by default.
+Declare intentional host imports with `#[link(wasm_import_module = "...")]` on the
+extern block and test them with the intended runtime. Use `--allow-undefined` only when
+the build deliberately relies on unresolved imports. Check the target's C ABI and rebuild
+linked C dependencies when upgrading a WebAssembly toolchain.
+
 ### Cargo Features
+
+For conditional item or expression selection, stable `cfg_select!` can replace a `cfg-if`
+dependency when its capabilities fit. Check the target project's minimum Rust version and
+test each supported target configuration.
+
+For a root package with `edition = "2024"`, Cargo selects resolver 3. A virtual workspace must
+set `[workspace] resolver = "3"` explicitly. Workspace dependency features are additive:
+`default-features = false` on a member cannot turn off defaults enabled at the workspace
+level or by another member. Check dependency selection against the project's `rust-version`.
+
+For `no_std` targets, disable `serde`'s default features (`serde = { version = "1", default-features = false }`),
+otherwise its implicit `std` feature makes it unusable with `no_std` formats like `postcard`.
 
 | Feature | Purpose |
 |---------|---------|

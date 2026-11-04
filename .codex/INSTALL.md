@@ -48,7 +48,7 @@ After installation, ask Codex about:
 
 ## Requirements
 
-- Rust 1.85+ (edition 2024 recommended)
+- Rust 1.99 or newer, with edition 2024
 - Cargo
 
 ## Default Project Settings
@@ -58,7 +58,7 @@ When creating Rust projects, use:
 ```toml
 [package]
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.99"
 
 [lints.rust]
 unsafe_code = "warn"

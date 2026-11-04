@@ -22,13 +22,15 @@ In `unsafe` functions or functions containing unsafe blocks, prefer `assert!` ov
 // DON'T: Use debug_assert for safety-critical checks
 pub unsafe fn get_unchecked(slice: &[i32], index: usize) -> &i32 {
     debug_assert!(index < slice.len());  // Gone in release!
-    &*slice.as_ptr().add(index)
+    // SAFETY: The caller must provide an in-bounds index.
+    unsafe { &*slice.as_ptr().add(index) }
 }
 
 // DON'T: Rely on debug_assert for FFI safety
 pub unsafe fn call_c_function(ptr: *const Data) {
     debug_assert!(!ptr.is_null());  // Won't catch bugs in release
-    ffi::process_data(ptr);
+    // SAFETY: The caller must uphold the C function's pointer requirements.
+    unsafe { ffi::process_data(ptr); }
 }
 ```
 
@@ -38,7 +40,8 @@ pub unsafe fn call_c_function(ptr: *const Data) {
 // DO: Use assert! for safety checks (when performance allows)
 pub unsafe fn get_unchecked(slice: &[i32], index: usize) -> &i32 {
     assert!(index < slice.len(), "index {} out of bounds for len {}", index, slice.len());
-    &*slice.as_ptr().add(index)
+    // SAFETY: The caller must provide an in-bounds index.
+    unsafe { &*slice.as_ptr().add(index) }
 }
 
 // DO: Use debug_assert when CALLER is responsible
@@ -47,7 +50,8 @@ pub unsafe fn get_unchecked(slice: &[i32], index: usize) -> &i32 {
 pub unsafe fn get_unchecked_fast(slice: &[i32], index: usize) -> &i32 {
     // Caller is responsible; debug_assert just helps catch bugs during development
     debug_assert!(index < slice.len());
-    &*slice.as_ptr().add(index)
+    // SAFETY: The caller must provide an in-bounds index.
+    unsafe { &*slice.as_ptr().add(index) }
 }
 
 // DO: Use assert for internal safety, debug_assert for caller obligations
@@ -87,7 +91,7 @@ pub unsafe fn process(slice: &[u8], index: usize) {
     assert!(index < slice.len());
 
     // SAFETY: Caller guarantees index < len (checked in debug)
-    let ptr = slice.as_ptr().add(index);
+    let ptr = unsafe { slice.as_ptr().add(index) };
     // ...
 }
 ```

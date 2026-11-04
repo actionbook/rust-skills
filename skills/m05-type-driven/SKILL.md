@@ -6,6 +6,27 @@ user-invocable: false
 
 # Type-Driven Design
 
+## Pattern matching on current Rust
+
+Let chains combine related conditions in `if` and `while`, with bindings
+available to later conditions. Match arms can also use `if let` guards. Guards do not count
+toward exhaustiveness. Preserve evaluation order, temporary drop behavior, and which arm
+runs when simplifying existing code. Respect the project's edition and minimum Rust version.
+
+When matching references with match ergonomics, bindings already inherit the reference
+mode. `mut`, `ref`, `ref mut`, and reference patterns cannot be added
+after the default binding mode has changed; make the reference pattern explicit or remove
+the redundant modifier. Check the intended binding type before rewriting.
+
+```rust
+fn parse_positive(input: Option<&str>) -> Option<i32> {
+    match input {
+        Some(text) if let Ok(value) = text.parse::<i32>() && value > 0 => Some(value),
+        _ => None,
+    }
+}
+```
+
 > **Layer 1: Language Mechanics**
 
 ## Core Question

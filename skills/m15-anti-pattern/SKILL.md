@@ -124,16 +124,16 @@ To implementation (Layer 1):
 
 ---
 
-## Deprecated → Better
+## Patterns to reconsider
 
-| Deprecated | Better |
+| Pattern | Alternative |
 |------------|--------|
 | Index-based loops | `.iter()`, `.enumerate()` |
 | `collect::<Vec<_>>()` then iterate | Chain iterators |
 | Manual unsafe cell | `Cell`, `RefCell` |
 | `mem::transmute` for casts | `as` or `TryFrom` |
 | Custom linked list | `Vec`, `VecDeque` |
-| `lazy_static!` | `std::sync::OnceLock` |
+| Extra dependency for simple lazy initialization | `std::sync::LazyLock` or `OnceLock` when their APIs meet the need |
 
 ---
 

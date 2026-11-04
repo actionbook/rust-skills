@@ -89,6 +89,11 @@ From design decisions to implementation:
 
 ## Quick Reference
 
+Temporaries in an `if let` scrutinee are dropped before entering the
+`else` branch, and tail-expression temporaries may be dropped sooner. Keep lock and borrow
+scopes explicit when their drop order matters. A `match` rewrite may have a different
+temporary scope, so check behavior when migrating existing code.
+
 | Pattern | Ownership | Cost | Use When |
 |---------|-----------|------|----------|
 | Move | Transfer | Zero | Caller doesn't need data |

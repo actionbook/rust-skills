@@ -13,7 +13,7 @@ use std::ptr::NonNull;
 mod ffi {
     use super::*;
 
-    extern "C" {
+    unsafe extern "C" {
         pub fn lib_create(name: *const c_char) -> *mut c_void;
         pub fn lib_destroy(handle: *mut c_void);
         pub fn lib_process(handle: *mut c_void, data: *const u8, len: usize) -> c_int;
@@ -71,69 +71,15 @@ impl Drop for Library {
     }
 }
 
-// Prevent accidental copies
-impl !Clone for Library {}
+// Library is not Clone or Copy unless explicitly implemented.
 ```
 
 ## Pattern 2: Callback Registration
 
-```rust
-use std::os::raw::{c_int, c_void};
-use std::panic::{catch_unwind, AssertUnwindSafe};
-
-type CCallback = extern "C" fn(value: c_int, user_data: *mut c_void) -> c_int;
-
-extern "C" {
-    fn register_callback(cb: CCallback, user_data: *mut c_void);
-    fn unregister_callback();
-}
-
-/// Safely register a Rust closure as a C callback.
-pub struct CallbackGuard<F> {
-    _closure: Box<F>,
-}
-
-impl<F: FnMut(i32) -> i32 + 'static> CallbackGuard<F> {
-    pub fn register(closure: F) -> Self {
-        let boxed = Box::new(closure);
-        let user_data = Box::into_raw(boxed) as *mut c_void;
-
-        extern "C" fn trampoline<F: FnMut(i32) -> i32>(
-            value: c_int,
-            user_data: *mut c_void,
-        ) -> c_int {
-            let result = catch_unwind(AssertUnwindSafe(|| {
-                let closure = unsafe { &mut *(user_data as *mut F) };
-                closure(value as i32) as c_int
-            }));
-            result.unwrap_or(-1)
-        }
-
-        unsafe {
-            register_callback(trampoline::<F>, user_data);
-        }
-
-        Self {
-            // SAFETY: We just created this box and need to keep it alive
-            _closure: unsafe { Box::from_raw(user_data as *mut F) },
-        }
-    }
-}
-
-impl<F> Drop for CallbackGuard<F> {
-    fn drop(&mut self) {
-        unsafe { unregister_callback(); }
-        // Box in _closure is dropped automatically
-    }
-}
-
-// Usage
-fn example() {
-    let multiplier = 2;
-    let _guard = CallbackGuard::register(move |x| x * multiplier);
-    // Callback is active until _guard is dropped
-}
-```
+See [closure callbacks](../rules/ffi-16-closure-to-c.md) for a synchronous trampoline and
+the guarantees required for a retained callback. A registration guard must own a stable
+allocation and unregister only when the C library guarantees no callbacks remain in flight.
+Account for concurrency, reentrancy, panics, and a guard forgotten by safe Rust code.
 
 ## Pattern 3: Opaque Handle Types
 
@@ -156,7 +102,7 @@ pub struct ConnectionHandle {
 mod ffi {
     use super::*;
 
-    extern "C" {
+    unsafe extern "C" {
         pub fn db_open(path: *const c_char) -> *mut DatabaseHandle;
         pub fn db_close(db: *mut DatabaseHandle);
         pub fn db_connect(db: *mut DatabaseHandle) -> *mut ConnectionHandle;
@@ -237,7 +183,8 @@ fn set_last_error<E: std::error::Error + 'static>(err: E) {
 }
 
 /// Get the last error message. Caller must free with `free_string`.
-#[no_mangle]
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
 pub extern "C" fn get_last_error() -> *mut c_char {
     LAST_ERROR.with(|e| {
         e.borrow()
@@ -252,8 +199,12 @@ pub extern "C" fn get_last_error() -> *mut c_char {
 }
 
 /// Free a string returned by this library.
-#[no_mangle]
-pub extern "C" fn free_string(s: *mut c_char) {
+///
+/// # Safety
+/// `s` must be null or a pointer returned by this library that has not been freed.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn free_string(s: *mut c_char) {
     if !s.is_null() {
         // SAFETY: String was created by CString::into_raw
         unsafe { drop(CString::from_raw(s)); }
@@ -261,13 +212,19 @@ pub extern "C" fn free_string(s: *mut c_char) {
 }
 
 /// Example function with proper error handling.
-#[no_mangle]
-pub extern "C" fn do_operation(data: *const u8, len: usize) -> c_int {
+///
+/// # Safety
+/// `data` must be valid for `len` initialized bytes in one live allocation,
+/// not mutated for the duration of the call, with length at most `isize::MAX`.
+// SAFETY: The final binary must define this exported symbol only once.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn do_operation(data: *const u8, len: usize) -> c_int {
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), c_int> {
         if data.is_null() {
             return Err(ERR_NULL_PTR);
         }
 
+        // SAFETY: The caller guarantees the buffer validity and lifetime.
         let slice = unsafe { std::slice::from_raw_parts(data, len) };
 
         std::str::from_utf8(slice)

@@ -75,7 +75,7 @@ Claude:
 
 **Rust Changelog Query:**
 ```
-User: "What's new in Rust 1.85?"
+User: "What's new in the latest Rust release?"
 
 Claude:
 1. Read ../../agents/rust-changelog.md

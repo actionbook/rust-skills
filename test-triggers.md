@@ -104,6 +104,9 @@
 | `benchmark 怎么写` | m10-performance |
 | `criterion 用法` | m10-performance |
 | `cache locality` | m10-performance |
+| `Rust SIMD vectorization` | m10-performance |
+| `How do I use fearless_simd?` | m10-performance |
+| `vectorisation of a Rust loop` | m10-performance |
 | `零拷贝 zero copy` | m10-performance |
 
 ## Ecosystem (m11-ecosystem)
@@ -175,7 +178,7 @@
 | Query | Expected Skill |
 |-------|----------------|
 | `tokio 最新版本` | rust-learner |
-| `Rust 1.85 有什么新特性` | rust-learner |
+| `最新 Rust 版本有什么新特性` | rust-learner |
 | `serde 文档` | rust-learner |
 | `crate info` | rust-learner |
 

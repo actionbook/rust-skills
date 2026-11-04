@@ -23,7 +23,7 @@ async fn basic_spawn() {
 
     // Wait for result
     let result = handle.await.unwrap();
-    println!("Got: {}", result);
+    println!("Got: {result}");
 }
 
 // =====================================================
@@ -37,7 +37,7 @@ async fn parallel_fetch(urls: Vec<String>) -> Vec<String> {
         set.spawn(async move {
             // Simulate fetch
             tokio::time::sleep(Duration::from_millis(100)).await;
-            format!("Response from {}", url)
+            format!("Response from {url}")
         });
     }
 
@@ -92,7 +92,7 @@ async fn producer_consumer() {
     let producer = tokio::spawn(async move {
         for i in 0..100 {
             tx.send(i).await.unwrap();
-            println!("Sent: {}", i);
+            println!("Sent: {i}");
         }
     });
 
@@ -100,7 +100,7 @@ async fn producer_consumer() {
     let consumer = tokio::spawn(async move {
         while let Some(item) = rx.recv().await {
             tokio::time::sleep(Duration::from_millis(50)).await;
-            println!("Received: {}", item);
+            println!("Received: {item}");
         }
     });
 
@@ -138,7 +138,7 @@ impl Server {
         self.shutdown_tx = Some(shutdown_tx);
 
         tokio::select! {
-            _ = self.serve() => {
+            () = self.serve() => {
                 println!("Server finished");
             }
             _ = shutdown_rx => {
@@ -193,10 +193,10 @@ async fn main() {
         "http://c.com".to_string(),
     ];
     let results = parallel_fetch(urls).await;
-    println!("Fetched: {:?}", results);
+    println!("Fetched: {results:?}");
 
     let result = cpu_bound_in_async().await;
-    println!("CPU result: {}", result);
+    println!("CPU result: {result}");
 }
 
 // =====================================================

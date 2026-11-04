@@ -5,11 +5,11 @@ level: P
 impact: MEDIUM
 ---
 
-# Provide Unsafe Counterparts for Performance Alongside Safe Methods
+# Provide Unsafe Counterparts Only When Justified
 
 ## Summary
 
-When providing performance-critical operations that skip safety checks, offer both a safe checked version and an unsafe unchecked version.
+Provide a safe API by default. Add an unchecked counterpart only when benchmarks show a useful benefit and its safety contract is necessary and enforceable.
 
 ## Rationale
 
@@ -25,11 +25,12 @@ impl<T> MySlice<T> {
     /// # Safety
     /// Index must be in bounds.
     pub unsafe fn get(&self, index: usize) -> &T {
-        &*self.ptr.add(index)
+        // SAFETY: Caller guarantees index is in bounds and storage remains valid.
+        unsafe { &*self.ptr.add(index) }
     }
 }
 
-// DON'T: Only provide checked version when performance matters
+// A checked version alone is appropriate unless measurements justify an unchecked API
 impl<T> MySlice<T> {
     pub fn get(&self, index: usize) -> Option<&T> {
         if index < self.len {
@@ -38,7 +39,7 @@ impl<T> MySlice<T> {
             None
         }
     }
-    // Missing: get_unchecked for performance-critical code
+    // Add an unchecked method only if measured workloads justify it.
 }
 ```
 
@@ -66,7 +67,8 @@ impl<T> MySlice<T> {
     #[inline]
     pub unsafe fn get_unchecked(&self, index: usize) -> &T {
         debug_assert!(index < self.len, "index out of bounds");
-        &*self.ptr.add(index)
+        // SAFETY: Caller guarantees index is in bounds and storage remains valid.
+        unsafe { &*self.ptr.add(index) }
     }
 
     /// Gets an element, panicking if out of bounds.
@@ -84,7 +86,7 @@ impl<T> MySlice<T> {
 | Safe Method | Unsafe Counterpart |
 |-------------|-------------------|
 | `slice.get(i)` | `slice.get_unchecked(i)` |
-| `str.chars().nth(i)` | `str.get_unchecked(range)` |
+| `str.get(range)` | `str.get_unchecked(range)` |
 | `vec.pop()` | `vec.set_len()` + `ptr::read` |
 | `String::from_utf8()` | `String::from_utf8_unchecked()` |
 
@@ -96,7 +98,7 @@ impl<T> MySlice<T> {
 
 ## Checklist
 
-- [ ] Does my safe method have an unsafe counterpart for hot paths?
+- [ ] Do measurements justify an additional unchecked API?
 - [ ] Does my unsafe method have a safe alternative for normal use?
 - [ ] Are both methods documented with their trade-offs?
 - [ ] Does the unsafe version include debug assertions?

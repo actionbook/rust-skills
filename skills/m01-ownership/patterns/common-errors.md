@@ -11,7 +11,7 @@ println!("{}", s);   // ERROR: value borrowed after move
 
 ### Fix Options
 
-**Option 1: Clone (if ownership not needed)**
+**Option 1: Clone (when both uses need independent owned values)**
 ```rust
 let s = String::from("hello");
 let s2 = s.clone();  // s is cloned
@@ -104,6 +104,11 @@ drop(r1);
 let mut r2 = s.borrow_mut();
 ```
 
+**Option 3: Borrow distinct slice elements**
+
+For runtime indices into one slice, `get_disjoint_mut([a, b])` returns both borrows or an
+error if the indices overlap or are out of bounds. See `m03-mutability` for an example.
+
 ---
 
 ## E0502: Cannot Borrow as Mutable While Immutable Borrow Exists
@@ -126,12 +131,12 @@ v.push(4);              // OK
 println!("{}", first);  // OK: using copied value
 ```
 
-**Option 2: Clone before mutating**
+**Option 2: Clone a non-Copy value before mutating**
 ```rust
-let mut v = vec![1, 2, 3];
-let first = v[0].clone();  // if T: Clone
-v.push(4);
-println!("{}", first);
+let mut v = vec![String::from("first")];
+let first = v[0].clone();
+v.push(String::from("second"));
+println!("{first}");
 ```
 
 ---

@@ -328,6 +328,10 @@ fn condvar_example() {
 ```
 
 ### Once (One-Time Initialization)
+
+Avoid combining `Once` with a mutable static. The pattern below uses unsafe access to shared
+mutable state and can create invalid references. Use `LazyLock` for one-time initialization:
+
 ```rust
 use std::sync::Once;
 
@@ -343,10 +347,14 @@ fn get_config() -> &'static Config {
     unsafe { CONFIG.as_ref().unwrap() }
 }
 
-// Better: use once_cell or lazy_static
-use once_cell::sync::Lazy;
+```
 
-static CONFIG: Lazy<Config> = Lazy::new(|| {
+Use the standard library for lazy initialization:
+
+```rust
+use std::sync::LazyLock;
+
+static CONFIG: LazyLock<Config> = LazyLock::new(|| {
     load_config()
 });
 ```

@@ -3,7 +3,7 @@ id: ptr-05
 original_id: G.UNS.PTR.02
 level: G
 impact: CRITICAL
-clippy: cast_ref_to_mut
+rustc: invalid_reference_casting
 ---
 
 # Do Not Manually Convert Immutable Pointer to Mutable

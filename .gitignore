@@ -6,3 +6,8 @@
 !.claude/settings.example.json
 
 # Keep .claude/hooks/ for distribution
+
+# Node package tooling (the DSH bundle has no runtime dependencies)
+node_modules/
+*.tgz
+npm-debug.log*
