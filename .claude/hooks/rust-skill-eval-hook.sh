@@ -2,6 +2,29 @@
 # Rust Skills Meta-Cognition Hook
 # Forces Claude to use meta-cognition routing with mandatory tracing
 
+# Claude Code ignores `matcher` for UserPromptSubmit, so the hook runs on every
+# prompt. Apply the matcher from hooks.json here instead.
+# Optional: RUST_SKILLS_HOOK=project also requires a Cargo project, unless the
+# prompt mentions Rust directly.
+hooks_json="${CLAUDE_PLUGIN_ROOT:-$(dirname "$0")/../..}/hooks/hooks.json"
+RUST_SKILLS_HOOKS_JSON="$hooks_json" perl -MJSON::PP -e '
+  local $/; my $in = eval { decode_json(<STDIN>) } || {};
+  my $prompt = $in->{prompt} // "";
+  my $cwd = $in->{cwd} || ".";
+  open my $fh, "<", $ENV{RUST_SKILLS_HOOKS_JSON} or exit 0;
+  my $cfg = eval { decode_json(<$fh>) } or exit 0;
+  my $m = $cfg->{hooks}{UserPromptSubmit}[0]{matcher} // "";
+  exit 1 if $m ne "" && $prompt !~ /$m/;
+  exit 0 unless ($ENV{RUST_SKILLS_HOOK} // "") eq "project";
+  exit 0 if $prompt =~ /\b(rust|rustc|cargo|crates?)\b|\.rs\b|Cargo\.toml|\bE0\d{3,4}\b/i;
+  for (my $d = $cwd; ; ) {
+    exit 0 if -f "$d/Cargo.toml";
+    last if -e "$d/.git" || $d eq "/" || $d eq "";
+    ($d =~ s{/[^/]*$}{}) or last; $d = "/" if $d eq "";
+  }
+  exit 1;
+' || exit 0
+
 cat << 'EOF'
 
 === RUST SKILLS DISPLAY FORMAT ===
